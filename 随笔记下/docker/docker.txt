@@ -1,0 +1,543 @@
+在使用docker容器时，有可能没有安装Vi, 安装Vi:apt-get install vim,如果提示：Unable to locate package vim,则需要敲：
+
+apt-get update, 等更新完毕以后再敲命令： apt-get install vim
+
+安装:
+# 1、yum 包更新到最新
+yum update
+# 2、安装需要的软件包， yum-util 提供yum-config-manager功能，另外两个是devicemapper驱动依赖的
+yum install -y yum-utils device-mapper-persistent-data lvm2
+# 3、 设置yum源
+yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+# 4、 安装docker，出现输入的界面都按 y
+yum install -y docker-ce
+or
+curl -sSL https://get.docker.com/ | sh
+# 5、 查看docker版本，验证是否验证成功
+docker -v
+
+docker ps 查看运行的镜像
+docker rm -f 镜像ID 停止镜像
+docker rmi -f 镜像ID 删除镜像
+docker rm $(docker ps -a -q) 删除所有停止的镜像
+docker build -t zdfy_docker:1.0 .     执行dockerfile文件
+
+docker run -d -p 8080:8080 zdfy_docker:1.0
+
+docker commit -m="描述信息" -a="作者" 容器id 目标镜像名:1.1
+
+我们可以使用 save 和 load 命令，通过镜像id导出镜像到宿主机，命令如下：
+docker save <image_name> -o <output_file>
+docker save -o datack.tar data/clickhouse
+然后将导出的镜像文件上传到网络不好的主机上，执行以下命令进行镜像导入，命令如下：
+docker load < coredns.tar
+
+### 查看容器IP:
+docker inspect a4b9e355ffd1
+
+更新容器自动重启
+docker update 容器名称 --restart=always
+
+将 docker-compose软件放到/usr/local/bin/ 目录下 执行 chmod +x /usr/local/bin/docker-compose  docker-compose --version
+
+Compose常用命令
+docker-compose -h                           # 查看帮助
+docker-compose up                           # 启动所有docker-compose服务
+docker-compose up -d                        # 启动所有docker-compose服务并后台运行
+docker-compose down                         # 停止并删除容器、网络、卷、镜像。
+docker-compose exec  yml里面的服务id                 # 进入容器实例内部  docker-compose exec docker-compose.yml文件中写的服务id /bin/bash
+docker-compose ps                      # 展示当前docker-compose编排过的运行的所有容器
+docker-compose top                     # 展示当前docker-compose编排过的容器进程
+
+docker-compose logs  yml里面的服务id     # 查看容器输出日志
+docker-compose config     # 检查配置
+docker-compose config -q  # 检查配置，有问题才有输出
+docker-compose restart   # 重启服务
+docker-compose start     # 启动服务
+docker-compose stop      # 停止服务
+
+### 部署docker可视化
+centos7
+docker run -d -p 8002:8000 -p 9002:9000 --name portainer     --restart=always     -v /var/run/docker.sock:/var/run/docker.sock     -v portainer_data:/data     portainer/portainer
+windows
+docker run -d -p 8000:8000 -p 9000:9000 --name portainer --restart always -v \\.\pipe\docker_engine:\\.\pipe\docker_engine -v portainer_data:C:\data portainer/portainer
+
+
+###  Docker部署前端
+https://blog.csdn.net/qq_21138747/article/details/124334529
+# 第一步
+cd /
+
+# 第二步 创建文件夹
+mkdir frontend-docker
+
+# 第三步
+cd frontend-docker
+
+# 第四步 创建nginx.conf.template并编辑好保存
+vi nginx.conf.template #打开编辑贴上下面的文件内容再按 esc 然后 : wq保存
+
+# 第五步 创建Dockerfile文件并编辑好保存
+vi Dockerfile #打开编辑贴上下面的文件内容再按 esc 然后 : wq保存
+
+# 第五步 上传vue项目build后的dist文件夹
+nginx.conf.template 文件内容
+user nginx;
+
+#user  nobody;
+worker_processes  1;
+
+#error_log  logs/error.log;
+#error_log  logs/error.log  notice;
+#error_log  logs/error.log  info;
+
+#pid        logs/nginx.pid;
+
+
+events {
+    worker_connections  1024;
+}
+
+
+http {
+    include       mime.types;
+    default_type  application/octet-stream;
+
+    #log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+    #                  '$status $body_bytes_sent "$http_referer" '
+    #                  '"$http_user_agent" "$http_x_forwarded_for"';
+
+    #access_log  logs/access.log  main;
+
+    sendfile        on;
+    #tcp_nopush     on;
+
+    #keepalive_timeout  0;
+    keepalive_timeout  65;
+
+    #gzip  on;
+
+    server {
+        listen       80;
+        server_name  localhost;
+
+        #charset koi8-r;
+
+        #access_log  logs/host.access.log  main;
+
+        location / {
+            root   /dist;
+			#try_files $uri /index.html; #解决路由重定向跳转 404 页面配置
+            index  index.html index.htm;
+        }
+
+        #error_page  404              /404.html;
+
+        # redirect server error pages to the static page /50x.html
+        #
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+            root   html;
+        }
+    }
+
+
+    # another virtual host using mix of IP-, name-, and port-based configuration
+    #
+    #server {
+    #    listen       8000;
+    #    listen       somename:8080;
+    #    server_name  somename  alias  another.alias;
+
+    #    location / {
+    #        root   html;
+    #        index  index.html index.htm;
+    #    }
+    #}
+
+
+    # HTTPS server
+    #
+    #server {
+    #    listen       443 ssl;
+    #    server_name  localhost;
+
+    #    ssl_certificate      cert.pem;
+    #    ssl_certificate_key  cert.key;
+
+    #    ssl_session_cache    shared:SSL:1m;
+    #    ssl_session_timeout  5m;
+
+    #    ssl_ciphers  HIGH:!aNULL:!MD5;
+    #    ssl_prefer_server_ciphers  on;
+
+    #    location / {
+    #        root   html;
+    #        index  index.html index.htm;
+    #    }
+    #}
+
+}
+Dockerfile文件内容 （业务镜像构建流程）
+FROM nginx:latest
+
+RUN mkdir /dist
+COPY ./dist /dist
+COPY ./nginx.conf.template /
+
+CMD envsubst < /nginx.conf.template > /etc/nginx/nginx.conf \
+	&& cat /etc/nginx/nginx.conf \
+	&& nginx -g 'daemon off;'
+
+
+该文件里主要是安装了nginx，复制dist、nginx.conf.template、启动nginx的步骤
+上面的东西准备好后我们进入上面保存那三个文件的目录frontend-docker
+cd /
+cd frontend-docker
+#已经在frontend-docker目录就不用执行这两条命令
+构建镜像
+docker build -f Dockerfile -t my-frontend:v2.0 .
+#注意最后那个点是必须的，代表当前目录
+
+
+docker run -d --name nginx01 -p 3001:80 --restart=always my-frontend:v2.0
+# -后台运行
+# --name nginx01  设置容器名字叫nginx01
+# -p 3000:80 公网ip的3000端口对应该容器的80端口
+# --restart=always设置了开机自启
+# my-frontend:v1.0 构建的镜像的名字
+
+
+###  Docker运行CentOS
+docker search centos
+docker pull centos7.9.2009
+docker run -itd --privileged centos /usr/sbin/init
+docker attach <container-id>  或  docker exec -it <container-id>  /bin/bash
+安装ssh
+yum install -y openssh-server
+设置密码
+passwd 123456
+systemctl start sshd.service
+systemctl enable sshd.service
+systemctl status sshd.service
+
+制作自己支持ssh的镜像
+docker commit  <container-id> <image-name>
+运行自己的镜像
+docker run -itd --privileged -p 50001:22 cxlt-centos /usr/sbin/init
+ssh root@<本机ip> -p 50001
+
+
+### elasticsearch
+docker run -id -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" elasticsearch:7.17.8
+
+docker run -id -e ELASTICSEARCH_HOSTS=http://172.17.0.4:9200 -p 5601:5601 kibana:7.17.8
+只需要在配置文件 kibana.yml 中加入
+i18n.locale: "zh-CN"
+
+### 部署Tomcat
+
+1. 搜索tomcat镜像
+docker search tomcat
+2. 拉取tomcat镜像
+docker pull tomcat
+3. 创建容器，设置端口映射、目录映射
+# 在/root目录下创建tomcat目录用于存储tomcat数据信息
+mkdir ~/tomcat
+cd ~/tomcat
+docker run -id --name=c_tomcat \
+-p 8080:8080 \
+-v $PWD:/usr/local/tomcat/webapps \
+tomcat
+- 参数说明：
+-p 8080:8080：将容器的8080端口映射到主机的8080端口
+-v $PWD:/usr/local/tomcat/webapps：**将主机中当前目录挂载到容器的webapps
+写个h1标签登录8080测试访问
+
+
+### 部署PGSQL
+docker run -itd --name=postgres13 -p 5432:5432 -e POSTGRES_PASSWORD=123456 postgres:9.6.24
+
+
+1. 搜索PGsql镜像
+docker search PGsql
+2. 拉取PGsql镜像
+docker pull postgres:9.6
+3. 创建容器，设置端口映射、目录映射
+# 在/root目录下创建pgsql目录用于存储pgsql数据信息
+mkdir ~/pgsql
+cd ~/pgsql
+
+docker run --name postgres \
+    --restart=always \
+    -e POSTGRES_PASSWORD=123456 \
+    -p 5432:5432 \
+    -d postgres
+
+docker run -id \
+-p 3306:3306 \
+--name=me_mysql \
+-v $PWD/conf:/etc/mysql/conf.d \
+-v $PWD/logs:/logs \
+-v $PWD/data:/var/lib/mysql \
+-e MYSQL_ROOT_PASSWORD=123456 \
+### 部署MySQL
+
+1. 搜索mysql镜像
+docker search mysql
+2. 拉取mysql镜像
+docker pull mysql:5.6
+3. 创建容器，设置端口映射、目录映射
+# 在/root目录下创建mysql目录用于存储mysql数据信息
+mkdir ~/mysql
+cd ~/mysql
+docker run -id \
+-p 3307:3306 \
+--name=me_mysql \
+-v $PWD/conf:/etc/mysql/conf.d \
+-v $PWD/logs:/logs \
+-v $PWD/data:/var/lib/mysql \
+-e MYSQL_ROOT_PASSWORD=123456 \
+mysql:5.7
+- 参数说明
+-p 3307:3306**：将容器的 3306 端口映射到宿主机的 3307 端口。
+-v $PWD/conf:/etc/mysql/conf.d**：将主机当前目录下的 conf/my.cnf 挂载到容器的 /etc/mysql/my.cnf。配置目录
+-v $PWD/logs:/logs**：将主机当前目录下的 logs 目录挂载到容器的 /logs。日志目录
+-v $PWD/data:/var/lib/mysql** ：将主机当前目录下的data目录挂载到容器的 /var/lib/mysql 。数据目录
+-e MYSQL_ROOT_PASSWORD=123456：**初始化 root 用户的密码。
+4. 进入容器，操作mysql
+docker exec –it c_mysql /bin/bash
+5. 使用外部机器连接容器中的mysql
+
+8.0版本后需要这些命令:开启密码验证方式,进入容器执行命令即可
+# 修改远程登陆
+# 修改密码过期规则----》永不过期
+ALTER USER 'root'@'%' IDENTIFIED BY '123' PASSWORD EXPIRE NEVER;
+# 更新用户的密码修改加密规则
+ALTER USER 'root'@'%' IDENTIFIED WITH mysql_native_password BY '123';
+# 刷新权限
+FLUSH PRIVILEGES;
+# 重置密码（==非必须==）
+ALTER USER 'root'@'%' IDENTIFIED BY '123';
+
+
+### 部署Nginx
+
+1. 搜索nginx镜像
+docker search nginx
+2. 拉取nginx镜像
+docker pull nginx
+3. 创建容器，设置端口映射、目录映射
+# 在/root目录下创建nginx目录用于存储nginx数据信息
+mkdir ~/nginx
+cd ~/nginx
+mkdir conf
+cd conf
+# 在~/nginx/conf/下创建nginx.conf文件,粘贴下面内容
+vim nginx.conf
+user  nginx;
+worker_processes  1;
+
+error_log  /var/log/nginx/error.log warn;
+pid        /var/run/nginx.pid;
+
+
+events {
+    worker_connections  1024;
+}
+
+
+http {
+    include       /etc/nginx/mime.types;
+    default_type  application/octet-stream;
+
+    log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                      '$status $body_bytes_sent "$http_referer" '
+                      '"$http_user_agent" "$http_x_forwarded_for"';
+
+    access_log  /var/log/nginx/access.log  main;
+
+    sendfile        on;
+    #tcp_nopush     on;
+
+    keepalive_timeout  65;
+
+    #gzip  on;
+
+    include /etc/nginx/conf.d/*.conf;
+}
+docker run -id --name=c_nginx \
+-p 80:80 \
+-v $PWD/conf/nginx.conf:/etc/nginx/nginx.conf \
+-v $PWD/logs:/var/log/nginx \
+-v $PWD/html:/usr/share/nginx/html \
+nginx
+- 参数说明：
+-p 80:80**：将容器的 80端口映射到宿主机的 80 端口。
+-v $PWD/conf/nginx.conf:/etc/nginx/nginx.conf**：将主机当前目录下的 /conf/nginx.conf 挂载到容器的 :/etc/nginx/nginx.conf。配置目录
+-v $PWD/logs:/var/log/nginx**：将主机当前目录下的 logs 目录挂载到容器的/var/log/nginx。日志目录
+4. 写个h1标签  访问使用外部机器访问nginx ip
+
+### 部署Redis
+
+1. 搜索redis镜像
+docker search redis
+2. 拉取redis镜像
+docker pull redis:5.0
+3. 创建容器，设置端口映射
+docker run -id --name=redis -p 6379:6379 redis
+docker run -id --name=redis -p 6379:6379 redis --requirepass 123456
+4. 设置密码  --  查看密码
+config set requirepass 123456
+config get requirepass
+5. (error) NOAUTH Authentication required.权限问题
+auth 123456
+config get requirepass
+6. 使用外部机器连接redis
+./redis-cli.exe -h 192.168.149.135 -p 6379
+
+config set requirepass 123456
+config get requirepass
+auth 123456
+
+docker-compose下设置密码
+    environment:
+      - REDIS_PASSWORD=mypassword
+
+部署minio
+docker pull minio/minio
+
+docker run --name minio -p 9080:9000  -p 9090:9090  -v /install/minio/data:/data -v /install/minio/config:/root/.minio -d --restart=always -e "MINIO_ROOT_USER=adminminio" -e "MINIO_ROOT_PASSWORD=adminminio" minio/minio server /data --console-address ":9090" --address ":9000"
+
+### 部署clickhouse
+docker run -id -p 8123:8123 yandex/clickhouse-server
+
+mkdir -p /data/clickhouse/data
+mkdir -p /data/clickhouse/conf
+mkdir -p /data/clickhouse/log
+
+# 下载最新版本clickhouse
+docker pull yandex/clickhouse-server
+# 下载指定版本clickhouse
+docker pull yandex/clickhouse-server:20.3.5.21
+
+sudo apt-get update
+sudo apt-get upgrade
+sudo apt-get install build-essential (安装依赖包)
+sudo apt-get install nginx就可以正常安装
+
+https://hub.docker.com/r/yandex/clickhouse-server/dockerfile 文件，EXPOSE 9000 8123 9009 了三个端口
+
+docker run -d --name clickhouse-server --ulimit nofile=262144:262144 \
+-p 8123:8123 -p 19000:9000 -p 9009:9009 \
+-v /data/clickhouse/data/:/var/lib/clickhouse \
+-v /data/clickhouse/conf/:/etc/clickhouse-server/ \
+-v /data/clickhouse/log:/var/log/clickhouse-server \
+yandex/clickhouse-server
+
+docker run -d --name clickhouse-server --ulimit nofile=262144:262144 \
+-p 8123:8123 -p 19002:9000 -p 9019:9009 \
+clickhouse/data:1.0
+
+docker run -d -p 8125:8123 -p 19011:9000  ckdata:1.1
+
+docker cp clickhouse-server:/etc/clickhouse-server/config.xml /data/clickhouse/conf/config.xml
+docker cp clickhouse-server:/etc/clickhouse-server/users.xml /data/clickhouse/conf/users.xml
+
+docker stop clickhouse-server
+
+docker run -d --name=clickhouse-server \
+-p 8123:8123 -p 9009:9009 -p 19000:9000 \
+--ulimit nofile=262144:262144 \
+-v /data/clickhouse/data:/var/lib/clickhouse:rw \
+-v /data/clickhouse/conf/config.xml:/etc/clickhouse-server/config.xml \
+-v /data/clickhouse/conf/users.xml:/etc/clickhouse-server/users.xml \
+-v /data/clickhouse/log:/var/log/clickhouse-server:rw \
+yandex/clickhouse-server:21.3.20.1
+
+docker打包MySQL镜像携带数据
+复制需要修改的yum源地址:
+mv /etc/apt/sources.list /etc/apt/sources.list.bak
+debian 10.x (buster)
+deb https://mirrors.aliyun.com/debian/ buster main non-free contrib
+deb-src https://mirrors.aliyun.com/debian/ buster main non-free contrib
+deb https://mirrors.aliyun.com/debian-security buster/updates main
+deb-src https://mirrors.aliyun.com/debian-security buster/updates main
+deb https://mirrors.aliyun.com/debian/ buster-updates main non-free contrib
+deb-src https://mirrors.aliyun.com/debian/ buster-updates main non-free contrib
+deb https://mirrors.aliyun.com/debian/ buster-backports main non-free contrib
+deb-src https://mirrors.aliyun.com/debian/ buster-backports main non-free contrib
+
+写入aliyun地址:1版
+echo "deb http://mirrors.aliyub.com/debian stretch main non-free contrib" >/etc/apt/sources.list
+echo "deb http://mirrors.aliyun.com/debian stretch-proposed-updates main non-free contrib" >>/etc/apt/sources.list
+echo "deb-src http://mirrors.aliyub.com/debian stretch main non-free contrib" >>/etc/apt/sources.list
+echo "deb-src http://mirrors.aliyub.com/debian stretch-proposed-updates main non-free contrib" >>/etc/apt/sources.list
+            :2版
+echo "deb http://mirrors.aliyun.com/debian stretch main" >/etc/apt/sources.list
+echo "deb http://security.debian.org/debian-security stretch/updates main" >>/etc/apt/sources.list
+echo "deb http://mirrors.aliyun.com/debian stretch-updates main" >>/etc/apt/sources.list
+更新:
+apt-get update
+安装vim:
+apt-get install -y vim
+安装vim时候出现的错误:
+The following packages have unmet dependencies:
+ vim : Depends: libpython3.5 (>= 3.5.0~b1) but it is not going to be installed
+       Depends: libtinfo5 (>= 6) but it is not going to be installed
+E: Unable to correct problems, you have held broken packages.
+
+解决方法：
+
+sudo su进入root模式
+
+apt-get install libtinfo5
+
+WARNING: The following essential packages will be removed.
+This should NOT be done unless you know exactly what you are doing!
+  sysvinit
+26 upgraded, 63 newly installed, 6 to remove and 292 not upgraded.
+Need to get 14.3 MB/15.0 MB of archives.
+After this operation, 21.1 MB disk space will be freed.
+You are about to do something potentially harmful.
+To continue type in the phrase 'Yes, do as I say!'
+ ?]
+
+
+ 只需要输入如下即可：
+
+ Yes, do as I say!
+接着安装另一个：
+
+apt-get install libpython3.5
+随后即可安装vim
+
+apt-get install vim
+
+
+更改mysql数据地址到根目录:
+mysql镜像的数据默认都在/var/lib/mysql目录下，我们修改默认的数据库的数据位置就行，不要放在/var/lib/mysql下面
+
+在根目录下创建work目录
+
+mkdir /work
+
+然后复制/var/lib/mysql下的数据到/work下
+
+cp -r /var/lib/mysql /work
+cp -r /var/lib/clickhouse /work
+
+修改数据库配置文件
+
+vim /etc/mysql.conf.d/mysqld.cnf
+
+修改 [mysqld]
+
+下的datadir目录
+
+将数据修改为刚才创建的目录
+
+datadir = /work/mysql
+datadir = /work/clickhouse
+重启容器，然后导入数据，然后将容器打包成镜像，然后再启动镜像，发现镜像中的数据有我们之前导入的数据
+

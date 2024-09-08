@@ -1,0 +1,37 @@
+# 忽略日志文件
+*.log
+
+# 忽略编译文件
+*.class
+*.o
+*.exe
+
+# 忽略 IDE 配置文件
+.vscode/
+.idea/
+
+# 忽略操作系统生成的文件
+#*.DS_Store
+#Thumbs.db
+
+# 忽略环境配置文件
+#.env
+
+
+/随笔记下/bigdatas/CDH搭建/cdhfile/cloudera-manager/cloudera-manager-daemons-6.3.1-1466458.el7.x86_64.rpm
+/随笔记下/bigdatas/CDH搭建/cdhfile/oracle-j2sdk1.8-1.8.0+update181-1.x86_64.rpm
+/随笔记下/bigdatas/CDH搭建/cdhfile/parcel-repo/CDH-6.3.2-1.cdh6.3.2.p0.1605554-el7.parcel
+/随笔记下/bigdatas/kafka/kafka_2.12-2.4.1.tgz
+/随笔记下/flink/flink/flink-shaded-hadoop-2-uber-3.0.0-cdh6.3.2-10.0.jar
+
+/随笔记下/bigdatas/Flink.docx
+/随笔记下/bigdatas/kafka/kafka_2.12-2.4.1.tgz
+/随笔记下/docker/dockerrpm/containerd.io-1.6.8-3.1.el7.x86_64.rpm
+/随笔记下/docker/dockerrpm/docker-ce-cli-20.10.9-3.el7.x86_64.rpm
+/随笔记下/flink/flink/flink-shaded-hadoop-2-uber-3.0.0-cdh6.3.2-10.0.jar
+/随笔记下/flink/flink/flink-sql-connector-mysql-cdc-2.0.2.jar
+/随笔记下/javaweb/javaee/jdk-8u341/jdk-8u341.CHM
+/随笔记下/javaweb/javaee/jdk-8u341/jdk-8u341中文.CHM
+/随笔记下/javaweb/javaee/jdk-9_汉化版.CHM
+/随笔记下/基础sql/mysql/MySQL-进阶篇.pdf
+

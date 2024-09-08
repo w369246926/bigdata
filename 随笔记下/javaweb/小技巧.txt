@@ -1,0 +1,45 @@
+测试时候可以使用:
+if(true){return null;},执行到此将return,不会继续向下执行
+判断是不是空白:
+StringUtils.isNotBlank
+map转json:可以用阿里巴巴json或一下
+<!--jackson-->
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-annotations</artifactId>
+      <version>2.9.0</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-core</artifactId>
+      <version>2.9.0</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>2.9.0</version>
+    </dependency>
+
+    //map转成json数据
+            ObjectMapper om = new ObjectMapper();
+            String json = om.writeValueAsString(map);
+
+<!--        token-->
+        <dependency>
+            <groupId>com.auth0</groupId>
+            <artifactId>java-jwt</artifactId>
+            <version>3.4.0</version>
+        </dependency>
+        HttpServletRequest爆红
+<tomcat下servlet-api放到C:\Program Files\Java\jdk1.8.0_351\jre\lib\ext下,或项目中>
+        <dependency>:解决http爆红问题
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpcore</artifactId>
+            <version>4.4.13</version>
+        </dependency>
+
+        <dependency>:解决StringUtil爆红问题
+            <groupId>commons-lang</groupId>
+            <artifactId>commons-lang</artifactId>
+            <version>2.6</version>
+        </dependency>

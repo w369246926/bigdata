@@ -1,0 +1,86 @@
+version: "3.7"
+# zookeeper: 172.26.0.10
+# kafka: 172.26.0.11
+# flink: - job manager 172.26.0.20
+#        - task manager(s) random assigment in 172.26.0.0/24
+services:
+  ZooKeeper:
+    image: ubuntu/zookeeper
+    container_name: ZooKeeper
+    hostname: ZooKeeper
+    volumes:
+      - ./data:/data
+    ports:
+      - "2181:2181"
+    networks:
+      kafka-flink-cluster-network:
+        ipv4_address: 172.26.0.10
+
+  Kafka:
+    image: wurstmeister/kafka
+    ports:
+      - "9092:9092"
+    depends_on:
+      - ZooKeeper
+    environment:
+      KAFKA_ADVERTISED_HOST_NAME: 127.0.0.1
+      KAFKA_MESSAGE_MAX_BYTES: 52428800  # 50M
+      KAFKA_CREATE_TOPICS: "topic_one:1:1,topic_two:3:1"
+      KAFKA_ZOOKEEPER_CONNECT: ZooKeeper:2181
+    volumes:
+      - ./kafka-logs:/kafka
+    networks:
+      kafka-flink-cluster-network:
+        ipv4_address: 172.26.0.11
+
+  FlinkJobManager:
+    image: flink:1.14.4-scala_2.12-java8
+    container_name: FlinkJobManager
+    hostname: FlinkJobManager
+    volumes:
+      - ./flink-jobmanager:/data
+    expose:
+      - "6123"
+    links:
+      -  Kafka
+    networks:
+      kafka-flink-cluster-network:
+        ipv4_address: 172.26.0.20
+    ports:
+      - "8081:8081"
+    command: jobmanager
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: FlinkJobManager
+
+  FlinkTaskManager:
+    image: flink:1.14.4-scala_2.12-java8
+    #container_name: FlinkTaskManager
+    #hostname: FlinkTaskManager
+    expose:
+      - "6121"
+      - "6122"
+    depends_on:
+      - FlinkJobManager
+    command: taskmanager
+    scale: 2
+    links:
+      - "FlinkJobManager:jobmanager"
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: FlinkJobManager
+        taskmanager.numberOfTaskSlots: 2
+    networks:
+      - kafka-flink-cluster-network
+
+
+networks:
+  kafka-flink-cluster-network:
+    # external: true
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.26.0.0/24
+

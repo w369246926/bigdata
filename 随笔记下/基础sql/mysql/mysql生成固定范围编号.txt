@@ -1,0 +1,1 @@
+select id from bus_utils_id where id<=255 and  id not in (select pidsn from bus_devices where  group_id = 26 and pidsn is not null)limit 1;

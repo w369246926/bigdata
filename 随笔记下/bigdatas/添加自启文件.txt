@@ -1,0 +1,15 @@
+vim start-kafka.sh
+cat /export/onekey/slave | while read line
+do
+{
+ echo $line
+ ssh $line "source /etc/profile;export JMX_PORT=9988;nohup ${KAFKA_HOME}/bin/kafka-server-start.sh ${KAFKA_HOME}/config/server.properties >/dev/nul* 2>&1 & "
+}&
+wait
+done
+
+可以将自己脚本路径加到该文件里。
+/etc/rc.d/rc.local 
+文件会在 Linux 系统各项服务都启动完毕之后再被运行。
+
+/usr/lib/systemd/system

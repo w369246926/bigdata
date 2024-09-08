@@ -1,0 +1,60 @@
+基于1.13.2
+https://downloads.apache.org/flink/flink-1.13.2/flink-1.13.2-bin-scala_2.11.tgz
+所需jar包：
+flink-sql-connector-elasticsearch7_2.11-1.13.2.jar
+flink-sql-connector-mysql-cdc-2.1.1.jar
+flink-sql-connector-postgres-cdc-2.1.1.jar
+将它们放到目录 flink-1.13.2/lib/ 下
+
+进入MySQL操作：
+CREATE DATABASE mydb;
+USE mydb;
+CREATE TABLE orders (
+  order_id INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  order_date DATETIME NOT NULL,
+  customer_name VARCHAR(255) NOT NULL,
+  price DECIMAL(10, 5) NOT NULL,
+  product_id INTEGER NOT NULL,
+  order_status BOOLEAN NOT NULL -- Whether order has been placed
+) AUTO_INCREMENT = 10001;
+
+INSERT INTO orders
+VALUES (default, '2020-07-30 10:08:22', 'Jark', 50.50, 102, false),
+       (default, '2020-07-30 10:11:09', 'Sally', 15.00, 105, false),
+       (default, '2020-07-30 12:00:30', 'Edward', 25.25, 106, false);
+
+启动flink:
+./bin/start-cluster.sh  8081端口验证flink
+./bin/sql-client.sh
+flinksql中创建MySQL连接表
+Flink SQL> CREATE TABLE orders (
+   order_id INT,
+   order_date TIMESTAMP(0),
+   customer_name STRING,
+   price DECIMAL(10, 5),
+   product_id INT,
+   order_status BOOLEAN,
+   PRIMARY KEY (order_id) NOT ENFORCED
+ ) WITH (
+   'connector' = 'mysql-cdc',
+   'hostname' = 'localhost',
+   'port' = '3306',
+   'username' = 'root',
+   'password' = '123456',
+   'database-name' = 'mydb',
+   'table-name' = 'orders'
+ );
+flinksql中创建elasticsearch连接表
+ Flink SQL> CREATE TABLE enriched_orders (
+    order_id INT,
+    order_date TIMESTAMP(0),
+    PRIMARY KEY (order_id) NOT ENFORCED
+  ) WITH (
+      'connector' = 'elasticsearch-7',
+      'hosts' = 'http://localhost:9200',
+      'index' = 'enriched_orders'
+  );
+执行导入sql
+  Flink SQL> INSERT INTO enriched_orders
+  >  SELECT o.order_id, o.order_date
+  >  FROM orders AS o;

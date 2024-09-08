@@ -1,0 +1,175 @@
+数据库备份和恢复
+1、xtrabackup-物理备份
+
+全量备份主库数据：xtrabackup --backup --user=root --password=xxx --port=3306 --target-dir=/comProject/backup/db/full_20220831
+将full_20220831文件上传到从库服务器上
+关闭存库服务：service mysqld stop
+对数据进行“预备”（Prepare）操作，使数据文件完全一致：xtrabackup --prepare --target-dir=/comproject/backup/db/full/
+复制数据到从库：xtrabackup --copy-back --target-dir=/comproject/full_20220831/
+修改用户和用户组权限：chown -R mysql:mysql /comproject/db
+启动数据库：service mysqld start
+备注：
+壹：xtrabackup备份还原速度极快，备份的是ibd文件。mysql的db文件30GB左右，30分钟以内完成备份还原。
+贰：备份还原过程，测试环境和正式环境xtrabackup版本、mysql版本需保持一致。
+
+2.mydumper-逻辑备份
+
+mydumper高性能多线程备份和恢复工具。 -t 代表线程数
+备份：mydumper -h 127.0.0.1 -u root -p password-P 3306 -G -E -R -B xxdb -o xxdb_bak/ -v 3 -t 4 -k
+还原：myloader -u root -p password -B xxdb -q 25000 -d  xxdb_bak/ -v 3 -t 4
+还原：myloader -u root -p password -B xxdb -q 25000 -d  ./xxdb/ -v 3 -t 4 -o
+注意：对每张表的表结构和表数据分别进行备份，备份速度快，但是还原速度有点慢，但是比mysqldump的还原方式要快很多。
+
+3.mysqldump-逻辑备份
+备份：mysqldump -u 用户名 -pPASSWORD数据库名 > 数据库名.sql
+还原：mysql -uroot -pPASSWORD 数据库名 < 数据库名.sql
+注意：将整个库表结构和表数据进行备份，导出为一个巨大的sql文件，导出速度很快，恢复速度最慢
+
+4、数据库升级
+升级前全量备份db.
+
+数据库全库备份
+文件解压：tar xvf mysql-8.0.30-1.el7.x86_64.rpm-bundle.tar
+停止mysql服务：service mysqld stop
+备份配置文件：cp /etc/{my.cnf,my.cnf.bak0918}
+升级：rpm -Uvh mysql-community-*.rpm
+查询mysql版本：mysql -V
+还原配置文件：mv /etc/my.cnf.bak0918 /etc/my.cnf
+重新加载单位：systemctl daemon-reload
+重启：systemctl start mysqld.service
+
+5.sql语句在控制台执行方式‍
+执行单个sql文件：mysql> source  test.sql
+批量执行sql文件：cat /folds/*.sql | mysql -u root -p cgdb
+
+6、innodb_force_recovery
+
+innodb_force_recovery=0   表示当需要恢复时执行所有的恢复操作；
+innodb_force_recovery=1   表示忽略检查到的corrupt页；
+innodb_force_recovery=2   表示阻止主线程的运行，如主线程需要执行full purge操作，会导致crash；
+innodb_force_recovery=3   表示不执行事务回滚操作；
+innodb_force_recovery=4   表示不执行插入缓冲的合并操作；
+innodb_force_recovery=5   表示不查看重做日志，InnoDB存储引擎会将未提交的事务视为已提交；
+innodb_force_recovery=6   表示不执行前滚的操作，强制重启！
+说明：数据库损坏，服务无法启动，在/etc/my.cnf配置文件添加强制启动配置。从0-6尝试，直到服务启动为止。服务启动成功后，注释该配置，重新启动数据库服务。如果启动失败，导出全量数据，重新安装数据库服务，导入数据，恢复数据库数据。
+
+【2】数据库主从恢复-xtrabackup
+1、mysql数据库主节点
+mysql -A -uadmin -ppsw -h127.0.0.1 -P 7001
+select * from backends;
+2、mysql数据库从节点
+
+mysql -A -uroot -ppsw
+show slave status\G;
+3、mysql从库恢复（和主库全量同步）
+
+全量备份主库数据：xtrabackup --backup --user=root --password=xxx --port=3306 --target-dir=/comProject/backup/db/full_20220831
+将full_20220831文件上传到从库服务器上
+关闭存库服务：service mysqld stop
+对数据进行“预备”（Prepare）操作，使数据文件完全一致：xtrabackup --prepare --target-dir=/comproject/backup/db/full/
+复制数据到从库：xtrabackup --copy-back --target-dir=/comproject/full_20220831/
+修改用户和用户组权限：chown -R mysql:mysql /comproject/db
+启动数据库：service mysqld start
+修复从节点的master info ：
+根据/comproject/backup/db/full_20220831/xtrabackup_binlog_info,获取master_log_file和master_log_pos值
+change master to master_host='10.68.128.2',master_port=3306,master_user='root',master_password='xxx',master_log_file='mysql-bin.000026',master_log_pos=243;
+启动从库心跳：start slave;
+查看从库连接状态：show slave status\G;
+
+4、主从恢复后，查看从库心跳状态
+
+图片
+5、查看主从节点同步情况，从节点仍然处于down的状态
+图片
+执行下述脚本，重启cetus服务，主从恢复正常
+从库：
+create user if not exists "cetus"@"localhost" identified by "123456";
+GRANT SELECT, PROCESS, FILE, REFERENCES, INDEX, SHOW DATABASES, SUPER, LOCK TABLES, EXECUTE, REPLICATION SLAVE, REPLICATION CLIENT, SHOW VIEW ON *.* TO 'cetus'@'localhost';
+revoke INSERT, UPDATE, DELETE, CREATE, DROP on *.* from cetus@'localhost';
+update user set host='%' where user='cetus';
+GRANT SELECT, PROCESS, FILE, REFERENCES, INDEX, SHOW DATABASES, SUPER, LOCK TABLES, EXECUTE, REPLICATION SLAVE, REPLICATION CLIENT, SHOW VIEW ON *.* TO 'cetus'@'%';
+revoke INSERT, UPDATE, DELETE, CREATE, DROP on *.* from cetus@'%';
+FLUSH PRIVILEGES;
+
+主库：
+create user if not exists "cetus"@"localhost" identified by "123456";
+GRANT ALL PRIVILEGES ON *.* TO `cetus`@`localhost`;
+update user set host='%' where user='cetus';
+GRANT ALL PRIVILEGES ON *.* TO `cetus`@`%`;
+FLUSH PRIVILEGES;
+CREATE DATABASE if not exists proxy_heart_beat;
+USE proxy_heart_beat;
+CREATE TABLE if not exists tb_heartbeat ( p_id varchar(128) NOT NULL, p_ts timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3), PRIMARY KEY (p_id) ) ENGINE = InnoDB DEFAULT CHARSET = utf8;
+重启cetus服务：service cetus restart
+
+【3】数据库主从恢复-复制db
+
+复制主库db到从库
+备份db文件下面的auto.cnf，重启mysql服务会重新生成auto.cnf
+重启从库
+查看主节点信息：show master status;
+建立主从库连接：change master to master_host='10.68.128.2',master_port=3306,master_user='root',master_password='xxx',master_log_file='mysql-bin.000026',master_log_pos=243;
+重启从节点：start slave;
+查看从节点状态：show salve status\G;
+重启cetus服务：service cetus start
+查看主从状态：select * from backends;
+
+【4】常用sql
+
+1.update命令不能与order by limit配合使用
+错误写法：update student1 set status=1 where name in (select name from student2 ORDER BY id limit 3)
+正确写法：update student1 set status=1 where name in (select name from student2 where  date>'2022-09-01')
+
+2.多表关联update
+update student1 a ,student2 b set a.status=b.status where a.name=b.name
+
+3.查看个数据库大小
+
+select
+table_schema as '数据库',
+sum(table_rows) as '记录数',
+sum(truncate(data_length/1024/1024, 2)) as '数据容量(MB)',
+sum(truncate(index_length/1024/1024, 2)) as '索引容量(MB)'
+from information_schema.tables
+group by table_schema
+order by sum(data_length) desc, sum(index_length) desc;
+4.查看某个数据库中表大小
+
+select
+table_schema as '数据库',
+table_name as '表名',
+table_rows as '记录数',
+truncate(data_length/1024/1024, 2) as '数据容量(MB)',
+truncate(index_length/1024/1024, 2) as '索引容量(MB)'
+from information_schema.tables
+where table_schema='xxxdb'
+order by data_length desc, index_length desc;
+5、创建视图
+
+create view vc_test as (select * from test_table)
+6、substring灵活用法
+name列内容为：num3_4
+selecct * from test_table where substring(a.name, 4, 1) > substring(a.name, 6, 1)
+7、case when用法
+select
+ID,
+NAME,
+GENDER
+case when GENDER = 1 THEN '男'
+else '女'
+end '性别'
+8.数字转换为百分数
+concat拼接：select concat(num,'%') from test_table
+floor函数：select concat(floor(0.82*100),'%') from  test_table--82%
+去掉小数点后两位：truncate（0.889*100,2）
+四舍五入：round(0.8897*100,2)
+9.表字段可以设置默认值
+通过可视化工具设置默认值。
+或者通过create语句，设置default值
+10.清空表数据
+truncate table table_name
+
+数据库操作注意事项：
+1、操作库之前先备份db。
+2、操作表之前先备份表。
+

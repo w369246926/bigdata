@@ -1,0 +1,146 @@
+用户权限：
+root用户
+vim /etc/sudoers
+# 默认存在: root用户 具备所有的权限
+root    ALL=(ALL)       ALL
+
+# 授予 lisi 用户 所有的权限
+dcyw    ALL=(ALL)       ALL
+
+sudo useradd -m -g dcyw 组 新建用户名
+sudo passwd 新建用户名
+
+su 新建用户名
+
+
+权限问题：
+chmod -R 755 文件|目录
+每台虚拟机修改对应主机名重启后永久生效
+vim /etc/sudoers
+# 默认存在: root用户 具备所有的权限
+root    ALL=(ALL)       ALL
+
+# 授予 lisi 用户 所有的权限
+dcyw    ALL=(ALL)       ALL
+
+sudo vi /etc/sysconfig/network
+HOSTNAME=dcywz1
+每台虚拟机设置ip和域名映射
+sudo vim /etc/hosts
+192.168.88.128 dcywz1 dcywz1.hadoop.com
+192.168.88.129 dcywz1 dcywz1.hadoop.com
+192.168.88.130 dcywz1 dcywz1.hadoop.com
+查看防火墙状态
+systemctl status firewalld
+关闭防火墙
+systemctl stop firewalld
+开机不启动防火墙
+systemctl disable firewalld
+
+关闭selinux修改selinux的配置文件
+vi /etc/selinux/config
+SELINUX=disabled
+三台机器生成公钥与私钥
+ssh-keygen -t rsa
+三台机器执行密钥对
+ssh-copy-id dcywz1
+ssh-copy-id dcywz2
+ssh-copy-id dcywz3
+三台机器时钟同步
+## 安装
+yum install -y ntp
+
+## 启动定时任务
+crontab -e
+*/1 * * * * /usr/sbin/ntpdate ntp4.aliyun.com;
+安装软件--JDK
+查看自带JDK
+rpm -qa | grep java
+卸载自带JDK
+rpm -e --nodeps java-1.8.0-openjdk-1.8.0.102-4.b14.el7.x86_64
+rpm -e --nodeps java-1.8.0-openjdk-headless-1.8.0.102-4.b14.el7.x86_64
+rpm -e --nodeps java-1.7.0-openjdk-headless-1.7.0.111-2.6.7.8.el7.x86_64
+rpm -e --nodeps java-1.7.0-openjdk-1.7.0.111-2.6.7.8.el7.x86_64
+解压自己的JDK
+unzip jdk.zip
+vim .bash_profile
+export JAVA_HOME=/home/dcyw/server/jdk1.8
+export PATH=:$JAVA_HOME/bin:$PATH
+source .bash_profile
+chmod -R 755 jdk目录
+java -version
+scp /home/dcyw/server/jdk1.8 dcywz2:/home/dcyw/server/
+scp /home/dcyw/.bach_profile dcywz2:/home/dcyw/
+source .bash_profile
+scp /home/dcyw/server/jdk1.8 dcywz3:/home/dcyw/server/
+scp /home/dcyw/.bach_profile dcywz3:/home/dcyw/
+source .bash_profile
+每台机器用jps查询java进程
+解压自己的ZK
+vim  zoo.cfg
+创建一个数据存放路径
+mkdir /export/servers/zookeeper-3.4.9/zkdatas
+vim  zoo.cfg
+dataDir=/export/servers/zookeeper-3.4.9/zkdatas
+# 保留多少个快照
+autopurge.snapRetainCount=3
+# 日志多少小时清理一次
+autopurge.purgeInterval=1
+# 集群中服务器地址
+server.1=dcywz1:2888:3888
+server.2=dcywz2:2888:3888
+server.3=dcywz3:2888:3888
+进入自创的数据目录
+vim myid
+写入1
+scp到每台机器重复之前的操作并更改myid中的数字，依次更改
+启动所有机器zookeeper
+zookeeper目录下bin目录中./zkServer.sh start  (status)
+解压自己的hadoop
+cd 到Hadoop目录下/etc/hadoop/
+修改IP及数据存放目录地址
+修改core-site.xml、hdfs-site.xml、hadoop-env.sh、yarn-site.xml、
+mapred-env.sh添加Java地址
+vim slaves
+node01
+node02
+node03
+添加环境变量
+export HADOOP_HOME=/export/servers/hadoop-2.7.5
+export PATH=:$HADOOP_HOME/bin:$HADOOP_HOME/sbin:$PATH
+source .bash_profile
+分发
+scp -r hadoop目录 到dcyw：￥PWD
+启动hadoop
+启动Hadoop命令：
+cd /export/server/hadoop-2.7.5/  进入Hadoop目录
+bin/hdfs namenode -format  首次运行的格式化
+sbin/start-dfs.sh  启动hdfs  jps :namenode+datanode
+sbin/start-yarn.sh  启动yarn  jps: SecondaryNameNode+ResourceManager+nodemanager
+sbin/mr-jobhistory-daemon.sh start historyserver  历史job任务 jps: JobHistoryServer
+三个端口查看界面
+http://192.168.88.163:50070/explorer.html#/ 查看hdfs
+http://192.168.88.163:8088/cluster 查看yarn集群
+http://192.168.88.163:19888/jobhistory 查看历史完成的Job任务
+
+解压自己的KAFKA
+更改Kafka目录下config/server.properties
+# 指定broker的id每台机器需不同
+broker.id=0
+# 指定Kafka数据的位置
+log.dirs=/export/server/kafka_2.12-2.4.1/data
+# 配置zk的三个节点
+zookeeper.connect=node1.itcast.cn:2181,node2.itcast.cn:2181,node3.itcast.cn:2181
+注意：bin/kafka-server-start.sh中关于内存的设置
+每台机器启动
+kafka目录下  bin/kafka-server-start.sh config/server.properties
+
+
+
+
+
+
+
+
+
+

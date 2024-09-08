@@ -1,0 +1,29 @@
+1:所有服务器上传离线组件包cdhfile到/opt目录并给与权限:
+    cd /opt/cdhfile
+    chmod 755 *
+2:设置所有主机名
+    hostnamectl set-hostname hadoop101
+3：执行 基础环境配置：
+    ./01_centos_env_setup.sh
+4: 集群内所有机器执行，免密登录
+    ssh-copy-id hadoop1012345678
+5：安装JDK MYSQL 环境
+    02_software_install_setup.sh
+6：手动初次登入MySQL更改密码，然后退出执行脚本
+    mysql -uroot -p < init.sql
+7: 所有节点安装cdh环境
+    ./03_cdh_all_nodes_setup.sh
+8:主节点安装CHD server
+    ./04_cdh_main_node_setup.sh
+9:scm与数据库交互
+    /opt/cloudera/cm/schema/scm_prepare_database.sh mysql scm scm
+    交互
+10：所有服务器启动
+    从节点：systemctl start cloudera-scm-agent
+    主节点：systemctl start cloudera-scm-server
+    查看启动日志：tail -f /var/log/cloudera-scm-server/cloudera-scm-server.log
+11：内网时间同步（可选）
+    更改/etc/ntp.cong文件
+    systemctl restart ntpd
+    ntpq -p
+

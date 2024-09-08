@@ -1,0 +1,13 @@
+顺序执行
+
+ozone --daemon start scm
+ozone --daemon start om
+ozone --daemon start recon
+ozone --daemon start datanode
+ozone --daemon start s3g
+
+ozone --daemon stop datanode
+ozone --daemon stop recon
+ozone --daemon stop om
+ozone --daemon stop scm
+ozone --daemon stop s3g

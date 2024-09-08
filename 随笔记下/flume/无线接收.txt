@@ -1,0 +1,27 @@
+tier3.sources = r1
+tier3.sinks = k1
+tier3.channels = c1
+
+# netcat 监听端口
+tier3.sources.r1.type = netcat
+tier3.sources.r1.bind = hadoop104
+tier3.sources.r1.port = 29999
+tier3.sources.r1.max-line-length = 102400
+
+
+tier3.channels.c1.type = memory 
+tier3.channels.c1.capacity = 30000
+tier3.channels.c1.transactionCapacity = 3000
+
+
+tier3.sinks.k1.type = org.apache.flume.sink.kafka.KafkaSink
+tier3.sinks.k1.topic = wifi
+tier3.sinks.k1.kafka.bootstrap.servers = hadoop104:9092,hadoop105:9092,hadoop106:9092
+tier3.sinks.k1.max.message.size= 20000000
+tier3.sinks.k1.kafka.flumeBatchSize = 200
+tier3.sinks.k1.kafka.producer.acks = 1
+tier3.sinks.k1.kafka.producer.linger.ms = 1
+tier3.sinks.k1.kafka.producer.max.request.size = 7048576
+
+tier3.sinks.k1.channel = c1
+tier3.sources.r1.channels = c1 

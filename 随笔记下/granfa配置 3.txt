@@ -1,0 +1,14 @@
+ 
+ - job_name: 'prometheus'
+ static_configs:
+ - targets: ['hadoop202:9090']
+ # 添加 PushGateway 监控配置
+ - job_name: 'pushgateway'
+ static_configs:
+ - targets: ['hadoop202:9091']
+ labels:
+ instance: pushgateway
+# 添加 Node Exporter 监控配置
+ - job_name: 'node exporter'
+ static_configs:
+ - targets: ['hadoop202:9100', 'hadoop203:9100', 'hadoop204:9100']

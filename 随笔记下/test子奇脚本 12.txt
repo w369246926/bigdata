@@ -1,0 +1,45 @@
+#!/bin/bash
+function startZK(){
+ZKIP=(dcywz1 dcywz2 dcywz3)
+for ip in ${ZKIP[*]};
+do
+   #登录
+   echo -e "\e[1;32m 当前${ip}正在启动zookeep \e[0m"
+   ssh ${ip} "source /home/dcyw/.bash_profile;/home/dcyw/server/zookeeper-3.4.14/bin/zkServer.sh start" 
+   echo -e "\e[1;35m ${ip}启动结束----------\n\n \e[0m"
+   
+   `exit`
+done;
+}
+
+function startkafka(){
+KAFKAIP=(dcywz1 dcywz2 dcywz3)
+for ip in ${KAFKAIP[*]};
+do
+   #登录
+   echo -e "\e[1;32m 当前${ip}正在启动kafka \e[0m"
+   ssh ${ip} "source /home/dcyw/.bash_profile;cd /home/dcyw/server/kafka10;nohup bin/kafka-server-start.sh config/server.properties &" 
+   echo -e "\e[1;35m ${ip}启动结束----------\n\n \e[0m"
+   
+   `exit`
+done;
+}
+
+function startHadoop(){
+cd /home/dcyw/server/hadoop2.7.3/
+sbin/start-all.sh
+}
+
+
+
+#启动zk集群
+startZK;
+sleep 10
+#启动Kafka集群
+startkafka
+sleep 10
+#启动hadoop集群
+startHadoop;
+sleep 10
+查看日志
+journalctl -f

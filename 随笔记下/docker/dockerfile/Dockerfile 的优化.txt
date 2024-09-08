@@ -1,0 +1,40 @@
+优化 Dockerfile 的核心是 合理分层。
+可以看到每层 layer 都使用 cache ( ---> Using cache) ，并未重新构建。
+我们可以通过 docker image ls |grep demo 看到， demo:0.0.1 与 demo:0.0.2 的 layer hash 是相同。所以从根本上来说， 这两个镜像就是同一个镜像，虽然都是 build 出来的。
+1. 以不变应万变：一动不如一静
+一个相对固定的 build 环境
+善用 cache
+构建 自己的基础镜像：其中就包括了
+安全补丁
+权限限制
+基础库依赖安装
+等...
+2. 精简为美：一屋不扫何以扫天下
+使用 .dockerignore 保持 context 干净
+容器镜像环境清理
+缓存清理
+multi stage build
+你需要的了解的参考资料
+
+docker storage driver: https://docs.docker.com/storage/storagedriver/
+dockerfile best practices: https://docs.docker.com/develop/develop-images/dockerfile_best-practices/
+multi-stage: https://docs.docker.com/develop/develop-images/multistage-build/
+
+可以使用以下Dockerfile制作MySQL镜像，并执行指定的SQL脚本：
+FROM mysql:latest
+COPY ./init.sql /docker-entrypoint-initdb.d/
+ENV MYSQL_ROOT_PASSWORD=password
+EXPOSE 3306
+其中，init.sql是你要执行的SQL脚本，将其放在docker-entrypoint-initdb.d目录下即可。MYSQL_ROOT_PASSWORD是你设置的MySQL root用户的密码。
+最后，使用以下命令构建并运行容器：
+docker build -t mysql-image .
+docker run -d -p 3306:3306 --name mysql-container mysql-image
+可以使用以下Dockerfile制作tomcat镜像，并执行脚本：
+FROM tomcat:latest
+COPY ./myproject.war /usr/local/tomcat/webapps/
+COPY ./server.xml /usr/local/tomcat/conf/
+EXPOSE 8080
+CMD ["catalina.sh", "run"]
+最后，使用以下命令构建并运行容器：
+docker build -t mysql-image .
+docker run -d -p 3306:3306 --name mysql-container mysql-image

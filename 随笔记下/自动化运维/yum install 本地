@@ -1,0 +1,8 @@
+# 安装必要的工具
+sudo yum install yum-utils createrepo -y
+
+# 创建一个目录来存储软件包
+sudo mkdir -p /opt/local_repo
+
+# 下载已安装的软件包及其依赖
+sudo yumdownloader --destdir=/opt/local_repo $(rpm -qa) --resolve

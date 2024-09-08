@@ -1,0 +1,30 @@
+create table t1 (
+ id string,
+ ts bigint,
+ vc int
+) with(
+ 'connector' = 'kafka',
+ 'topic' = 't1',
+ 'properties.bootstrap.servers' = 'node1:9029,node2:9092,node3:9092',
+ 'properties.group.id' = 'atguigu',
+ 'scan.startup.mode' = 'latest-offset',
+ 'format' = 'csv'
+);
+create table t2 (
+ id string,
+ ts bigint,
+ vc int
+) with(
+ 'connector' = 'print'
+);
+insert into t2 select * from t1;
+
+<dependency>
+ <groupId>org.apache.flink</groupId>
+ <artifactId>flink-connector-kafka_2.11</artifactId>
+ <version>1.13.6</version>
+</dependency>
+
+bin/kafka-console-producer.sh --broker-list node1:9092 --topic t1
+
+测试数据:s1,1,1

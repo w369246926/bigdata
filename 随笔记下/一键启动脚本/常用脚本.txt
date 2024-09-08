@@ -1,0 +1,2 @@
+#分别分发脚本
+for i in {2..3}; do scp -r /export/servers/flink-1.13.1/ node0$i:$PWD; done

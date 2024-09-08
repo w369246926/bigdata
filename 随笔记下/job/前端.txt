@@ -1,0 +1,25 @@
+es6 语法
+nodejs:npm:包管理工具
+javascript对象: 弱类型语言,变量类型只有三种,变量值体现是字符串还是数值
+let 声明的变量可以被多次赋值
+const 修饰的叫常量，只能赋值一次
+var 声明的变量可以被多次赋值
+undefined:执行表达式或函数，没有返回结果，出现 undefined
+Function:  function 函数名(参数) { // 函数体 return 结果; }
+箭头函数: (参数) => { 函数体 return 结果; }
+
+html:
+标签:div ,apan , br , butten , h标签 , input, text, passwor, ref , li
+绑定标签 v-on:'@'click 点击事件,  style=  , @keyup.按键符 , v-for ,v-if.v-show,
+
+VUE: 初始化  npm init -y  Num install VUE
+在body 标签内 使用script 标签引入 vue,js 
+用vue对象绑定标签 实现数据传递到标签
+ let vm = new vue({ el:绑定标签, data:{创建变量, },methods:{创建方法  },
+                    computed:{计算属性},watch:{监听效果},filter:{过滤值} }) 
+<template>页面模板</template>
+<script>js</script>
+<style>样式</style>
+                    
+
+ 

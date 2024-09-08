@@ -1,0 +1,14 @@
+https://doris.apache.org/zh-CN/docs/install/install-deploy
+
+vi /etc/security/limits.conf
+* soft nofile 65536
+* hard nofile 65536
+
+IP 绑定
+因为有多网卡的存在，或因为安装过 docker 等环境导致的虚拟网卡的存在，同一个主机可能存在多个不同的 ip。当前 Doris 并不能自动识别可用 IP。所以当遇到部署主机上有多个 IP 时，必须通过 priority_networks 配置项来强制指定正确的 IP。
+
+priority_networks 是 FE 和 BE 都有的一个配置，配置项需写在 fe.conf 和 be.conf 中。该配置项用于在 FE 或 BE 启动时，告诉进程应该绑定哪个IP。示例如下：
+
+priority_networks=10.1.3.0/24
+
+这是一种 CIDR 的表示方法。FE 或 BE 会根据这个配置项来寻找匹配的IP，作为自己的 localIP。

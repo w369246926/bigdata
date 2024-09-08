@@ -1,0 +1,62 @@
+不进去程序执行sql脚本
+clickhouse-client --password 123456 --multiquery < /sql/bus.sql
+click house创建数据库
+CREATE DATABASE IF NOT EXISTS tutorial
+创建mysql数据表到clickhouse
+CREATE TABLE tmp ENGINE = MergeTree ORDER BY id AS SELECT * FROM mysql('127.0.0.1:3306','shop_itheima','user','root','123456');
+shell创建mysql数据表到clickhouse
+clickhouse-client --query "CREATE TABLE tmp ENGINE = MergeTree ORDER BY id AS SELECT * FROM mysql('127.0.0.1:3306','shop_itheima','user','root','123456');"
+shell 删除clickhouse 数据表
+clickhouse-client --query "drop table bigdata.tmp"
+
+删除数据
+alter table t_order_smt delete where 1 = 1;
+修改数据
+alter table t_order_smt update total_amount=toDecimal32(2000.00,2) where id
+=102;
+
+维度查询:（2）with rollup：从右至左去掉维度进行小计
+hadoop102 :) select id , sku_id,sum(total_amount) from t_order_mt group by id,sku_id with rollup;
+
+        with cube : 从右至左去掉维度进行小计，再从左至右去掉维度进行小计
+hadoop102 :) select id , sku_id,sum(total_amount) from t_order_mt group by id,sku_id with cube;
+
+        with totals: 只计算合计
+hadoop102 :) select id , sku_id,sum(total_amount) from t_order_mt group by id,sku_id with totals;
+
+查询 number 列 如果 = 1 则显示hello 若为fouse 则 进行第二个判断 (number =2则显示word ,否则为atguigu  在numbers表 前十行 )
+SELECT number = 1 ? 'hello' : (number = 2 ? 'world' : 'atguigu') FROM numbers(10);
+//查看语法优化
+EXPLAIN SYNTAX SELECT number = 1 ? 'hello' : (number = 2 ? 'world' : 'atguigu') FROM numbers(10);
+
+//开启三元运算符优化
+SET optimize_if_chain_to_multiif = 1;
+//再次查看语法优化
+EXPLAIN SYNTAX SELECT number = 1 ? 'hello' : (number = 2 ? 'world' : 'atguigu') FROM numbers(10);
+
+//返回优化后的语句
+SELECT multiIf(number = 1, \'hello\', number = 2, \'world\', \'xyz\') FROM numbers(10)
+
+采用副本可迭代引擎格式
+ENGINE = ReplicatedReplacingMergeTree('/clickhouse/table/{shard}/bus_warning_one',
+ '{replica}',
+ currenttime)
+PARTITION BY toYYYYMMDD(currenttime)
+PRIMARY KEY date
+ORDER BY (date,
+ uuid)
+SETTINGS index_granularity = 8192;
+
+create table t_order_rep2 (id UInt32,sku_id String,total_amount Decimal(16,2),create_time Datetime) engine =ReplicatedMergeTree('/clickhouse/table/01/t_order_rep','rep_102')prtition by toYYYYMMDD(create_time)primary key (id)order by (id,sku_id);
+
+
+create table t_order_rep2 (id UInt32,sku_id String,total_amount Decimal(16,2),create_time Datetime) engine =ReplicatedMergeTree('/clickhouse/table/01/t_order_rep','rep_103')partition by toYYYYMMDD(create_time)primary key (id)order by (id,sku_id);
+
+
+insert into t_order_rep2 values(101,'sku_001',1000.00,'2020-06-01 12:00:00'),(102,'sku_002',2000.00,'2020-06-01 12:00:00'),(103,'sku_004',2500.00,'2020-06-01 12:00:00'),(104,'sku_002',2000.00,'2020-06-01 12:00:00'),(105,'sku_003',600.00,'2020-06-02 12:00:00');
+
+create table st_order_mt on cluster ckcluster (id UInt32,sku_id String,total_amount Decimal(16,2),create_time Datetime) engine=ReplicatedMergeTree('/clickhouse/tables/{shard}/st_order_mt','{replica}')partition by toYYYYMMDD(create_time)primary key (id)order by (id,sku_id);
+
+create table st_order_mt_all2 on cluster ckcluster(id UInt32,sku_id String,total_amount Decimal(16,2),create_time Datetime)engine = Distributed(ckcluster,default, st_order_mt,hiveHash(sku_id));
+
+insert into st_order_mt_all2 values(201,'sku_001',1000.00,'2020-06-01 12:00:00') ,(202,'sku_002',2000.00,'2020-06-01 12:00:00'),(203,'sku_004',2500.00,'2020-06-01 12:00:00'),(204,'sku_002',2000.00,'2020-06-01 12:00:00'),(205,'sku_003',600.00,'2020-06-02 12:00:00');

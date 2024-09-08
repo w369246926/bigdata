@@ -1,0 +1,2 @@
+jdk16以上Javaben:
+record student(String name , int age){}

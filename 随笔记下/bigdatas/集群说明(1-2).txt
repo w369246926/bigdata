@@ -1,0 +1,341 @@
+192.168.88.161
+192.168.88.162
+192.168.88.163
+
+root
+123456
+
+mysql
+账号root
+密码123456
+
+jdk
+mysql
+Zookeeper
+hadoop
+namenode  resourcemanager 在node1
+
+node3装了hive
+
+node3配了本地yum源
+node3装了
+impala-catalog
+impala-state-store
+impala-server(impalad)
+
+node1  node2
+impala-server(impalad)
+
+node1
+sqoop
+
+node1
+flume
+启动命令：
+bin/flume-ng agent --conf conf/ --name a1 --conf-file job/tracesource.conf -Dflume.root.logger=INFO,console
+
+azkaban
+solo-server模式部署
+node1
+Web Server和Executor Server同一进程
+
+two-server模式部署
+node1	MySQL
+node2	web‐server和exec‐server不同进程
+
+multiple-executor模式部署
+node1	mysql
+node2	web-server、exec-server
+node3	exec-server
+
+oozie
+node1
+
+hue
+node1
+列出所有安装的内容
+
+echo -e '172.16.20.30 cdh1\n172.16.20.31 cdh2\n172.1620.32 cdh3' >> /etc/hosts
+
+echo never > /sys/kernel/mm/transparent_hugepage/defrag
+echo never > /sys/kernel/mm/transparent_hugepage/enabled
+
+echo 'echo never > /sys/kernel/mm/transparent_hugepage/defrag' >> /etc/rc.d/rc.local
+echo 'echo never > /sys/kernel/mm/transparent_hugepage/enabled' >> /etc/rc.d/rc.local
+chmod +x /etc/rc.d/rc.local
+
+cd /usr/lib/tuned
+grep "vm.swappiness" * -R
+
+sed -i s/"vm.swappiness = 30"/"vm.swappiness = 10"/g /usr/lib/tuned/virtual-guest/tuned.conf
+
+scp oracle-j2sdk1.8-1.8.0+update181-1.x86_64.rpm cdh3:/root/cdh6
+
+rpm -ivh oracle-j2sdk1.8-1.8.0+update181-1.x86_64.rpm 
+
+echo 'export JAVA_HOME=/usr/java/jdk1.8.0_181-cloudera' >> /etc/profile
+echo 'export PATH=$PATH:$JAVA_HOME/bin' >> /etc/profile
+source /etc/profile
+
+chown -R mysql:mysql /usr/local/mysql
+[root@cdh1 cdh6]# chmod -R 755 /usr/local/mysql
+[root@cdh1 cdh6]# cd /usr/local/mysql/
+[root@cdh1 mysql]# ./bin/mysqld --initialize --user=mysql
+[root@cdh1 mysql]# ./support-files/msql.server start
+
+
+[client]
+port=3306
+socket=/tmp/mysql.sock
+[mysqld]
+port=3306
+user=mysql
+socket=/tmp/mysql.sock
+basedir=/usr/local/mysql
+datadir=/usr/local/mysql/data
+log-error=/usr/local/mysql/error.log
+pid-file = /usr/local/mysql/mysql.pid
+transaction_isolation = READ-COMMITTED
+character-set-server = utf8
+collation-server = utf8_general_ci
+lower_case_table_names =1
+sql_mode = "STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION,NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO"
+将mysql添加为系统服务
+
+cp /usr/local/mysql/support-files/mysql.server /etc/init.d/mysql
+cd  /etc/init.d
+chmod 755 /etc/init.d/mysql
+chkconfig --add mysql
+chkconfig --level 345 mysql on
+
+
+echo 'export MYSQL_HOME=/usr/local/mysql' >> /etc/profile
+echo 'export PATH=.:$MYSQL_HOME/bin:$PATH' >> /etc/profile
+source /etc/profile
+
+cat /usr/local/mysql/error.log
+
+ASj5R8yNec:J
+
+CREATE USER 'root'@'%' IDENTIFIED WITH mysql_native_password BY '12345678';
+GRANT ALL ON *.* TO 'root'@'%';
+FLUSH PRIVILEGES;
+
+rpm -ivh cloudera-manager-daemons-6.3.1-1466458.el7.x86_64.rpm --nodeps --force
+rpm -ivh cloudera-manager-server-6.3.1-1466458.el7.x86_64.rpm --nodeps --force
+rpm -ivh cloudera-manager-agent-6.3.1-1466458.el7.x86_64.rpm --nodeps --force
+到了agent秘钥验证，可以用rpm安装的方式绕过验证
+
+启动
+[root@cdh1 schema]# systemctl status cloudera-scm-server.service
+[root@cdh1 schema]# systemctl start cloudera-scm-server.service
+
+
+	
+Install on cdh2.
+正在等待新安装的 Agent 检测信号...
+
+		
+Install on cdh2.
+无法接收 Agent 发出的检测信号。
+
+https://www.bilibili.com/video/BV1hh41127Qg?share_source=copy_web
+
+
+
+mkdir -p  /home/oldboy/tools
+cd /home/oldboy/tools
+wget https://www.rarlab.com/rar/rarlinux-x64-6.0.1.tar.gz  (64位操作系统)
+wget http://www.rarlab.com/rar/rarlinux-3.8.0.tar.gz  (32位操作系统)
+
+tar zxvf rarlinux-3.8.0.tar.gz
+cd rar
+make
+make install 
+
+本用户环境变量
+vim ~/.bash_profile
+
+chmod 755 ./*
+
+vi编辑器下输入 set nu 可以查看行号
+
+ rpm -qa |grep java
+机器之间复制目录
+scp -r hadoop-2.7.5 node02:$PWD
+
+下载上传插件
+yum -y install lrzsz
+
+启动MySQL命令：
+/etc/init.d/mysql start
+
+启动Clickhouse:
+sudo yum install yum-utils
+sudo rpm --import https://repo.clickhouse.com/CLICKHOUSE-KEY.GPG
+sudo yum-config-manager --add-repo https://repo.clickhouse.com/rpm/clickhouse.repo
+sudo yum install clickhouse-server clickhouse-client
+
+/etc/clickhouse-server/conf.xml  下listen注释打开；远程连接
+service clickhouse-server stop
+
+启动sudo /etc/init.d/clickhouse-server start
+操作客户端clickhouse-client
+
+运行以下命令设置MySQL服务开机自启动。
+systemctl enable mysqld
+
+启动zookeeper命令：
+/export/server/zookeeper-3.4.6/bin/zkServer.sh start
+jps命令显示 QuorumPeerMain进程
+
+启动Hadoop命令：
+cd /export/server/hadoop-2.7.5/  进入Hadoop目录
+bin/hdfs namenode -format  首次运行的格式化
+sbin/start-dfs.sh  启动hdfs
+sbin/start-yarn.sh  启动yarn
+sbin/mr-jobhistory-daemon.sh start historyserver  历史job任务
+三个端口查看界面
+http://192.168.88.163:50070/explorer.html#/ 查看hdfs
+http://192.168.88.163:8088/cluster 查看yarn集群
+http://192.168.88.163:19888/jobhistory 查看历史完成的Job任务
+
+hive启动
+第一种:bin/hive
+/export/server/hive-2.1.0/bin/hive
+
+第二种:Beeline Client
+首先启动metastore服务
+nohup /export/server/hive-2.1.0/bin/hive --service metastore &
+然后启动hiveserver2服务
+nohup /export/server/hive-2.1.0/bin/hive --service hiveserver2 &
+启动beeline
+/export/server/hive-2.1.0/bin/beeline
+
+beeline> !connect jdbc:hive2://node3:10000
+Connecting to jdbc:hive2://node3:10000
+Enter username for jdbc:hive2://node3:10000: root
+Enter password for jdbc:hive2://node3:10000:123456
+退出beeline
+!exit
+
+启动impala
+主节点 node-3 启动以下三个服务进程
+service impala-state-store start
+service impala-catalog start
+service impala-server start
+从节点启动 node-1 与 node-2 启动 impala-server
+service impala-server start
+查看 impala 进程是否存在
+ps -ef | grep impala
+
+进入impala命令
+impala shell
+
+
+sqoop启动
+bin/sqoop list-databases \
+--connect jdbc:mysql://localhost:3306/ \
+--username root --password hadoop 此命令会展示MySQL数据库信息
+
+
+sqoop创建job工作任务
+
+bin/sqoop job --create itcastjob5 -- import --connect jdbc:mysql://192.168.88.161:3306/userdb \
+--username root \
+--password-file /input/sqoop/pwd/itcastmysql.pwd \
+--target-dir /sqoopresult666 \
+--table emp --m 1
+
+
+sqoop job -exec itcastjob5
+
+删除hdfs文件
+
+hadoop fs -rm /input/sqoop/pwd/itcastmysql.pwd
+
+
+flume启动命令
+bin/flume-ng agent -c ./conf -f ./conf/spool-hdfs.conf -n a1 -Dflume.root.logger=INFO,console
+
+阿兹卡班启动命令
+
+cd azkaban-solo-server-0.1.0-SNAPSHOT/     目录下
+bin/start-solo.sh    执行命令
+
+web页面：IP地址：8081
+
+Oozie启动命令
+
+cd /export/servers/oozie-4.1.0-cdh5.14.0
+bin/oozied.sh start 
+关闭命令
+bin/oozied.sh stop
+
+http://node-1:11000/oozie/
+
+启动 hue 进程
+cd /export/servers/hue-3.9.0-cdh5.14.0
+build/env/bin/supervisor
+页面访问 hue
+http://node-1:8888
+
+启动redis
+src/redis-server redis.conf    启动服务
+src/redis-cli -h 192.168.88.161
+
+HBase集群启动
+第一台机器执行以下命令进行启动
+cd /export/server/hbase-2.0.0
+bin/start-hbase.sh
+
+启动HMaster命令
+bin/hbase-daemon.sh start master
+启动HRegionServer命令
+bin/hbase-daemon.sh start regionserver
+浏览器页面访问
+http://node01:16010/master-status
+
+node01服务器执行以下命令进入hbase的shell客户端
+cd /export/servers/hbase-2.0.0
+bin/hbase shell
+
+kafka启动命令
+前台启动：cd /export/servers/kafka_2.11-0.10.0.0
+bin/kafka-server-start.sh config/server.properties
+
+后台启动：cd /export/servers/kafka_2.11-0.10.0.0
+nohup bin/kafka-server-start.sh config/server.properties 2>&1 &
+
+停止命令：cd /export/servers/kafka_2.11-0.10.0.0
+bin/kafka-server-stop.sh
+
+jps命令查看kafka是否启动进程
+
+创建topic
+bin/kafka-topics.sh --create --partitions 3 --replication-factor 2 --topic text1 --zookeeper node1:2181,node2:2181,node3:2181
+topic生产者
+bin/kafka-console-producer.sh --broker-list node1.itcast.cn:9092 --topic test
+消费topic
+bin/kafka-console-consumer.sh --bootstrap-server node1.itcast.cn:9092 --topic t1703 --from-beginning
+
+空参实参setget
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+
+elasticsearch
+启动nohup /export/server/es/elasticsearch-7.6.1/bin/elasticsearch 2>&1 &
+node1.itcast.cn启动elasticsearch-head插件
+cd /export/server/es/elasticsearch-head/node_modules/grunt/bin/
+进程前台启动命令
+./grunt server
+进程后台启动命令
+nohup ./grunt server >/dev/null 2>&1 &
+http://node1.itcast.cn:9100/
+
+
+
+
+
+

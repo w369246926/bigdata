@@ -1,0 +1,245 @@
+centos 7 安装mysql
+1：wget https://dev.mysql.com/get/mysql80-community-release-el7-3.noarch.rpm
+2：
+yum localinstall mysql80-community-release-el7-3.noarch.rpm
+3:
+sudo yum install mysql-community-server
+报错：
+"""
+[root@hadoop103 opt]# sudo yum install mysql-community-server
+
+4:
+yum install mysql-community-server
+4.1报错：
+Public key for mysql-community-client-8.0.38-1.el7.x86_64.rpm is not installed
+
+
+ Failing package is: mysql-community-client-8.0.38-1.el7.x86_64
+ GPG Keys are configured as: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-mysql
+ 
+ 缺少key
+ 
+4.2 解决方法：下载相应年份的key:
+rpm --import https://repo.mysql.com/RPM-GPG-KEY-mysql-2022
+rpm --import https://repo.mysql.com/RPM-GPG-KEY-mysql-2023
+
+5:
+yum install mysql-community-server
+
+6:
+systemctl start mysqld
+systemctl enable mysqld
+查看首次生成的密码：
+grep 'temporary password' /var/log/mysqld.log
+=#kI1!Ve:07g
+
+
+6.1：mysql_secure_installation
+安全设置：
+[root@hadoop103 opt]# mysql_secure_installation
+Securing the MySQL server deployment.
+
+Enter password for user root: 
+
+The existing password for the user account root has expired. Please set a new password.
+
+New password: 这一步意思是设置新密码：
+D#p8T!k@2024
+6.2
+The 'validate_password' component is installed on the server.
+The subsequent steps will run with the existing configuration
+of the component.
+Using existing password for root.
+
+Estimated strength of the password: 100 
+Change the password for root ? ((Press y|Y for Yes, any other key for No) :
+这段信息是关于修改服务器上 root 用户的密码的提示。具体来说：
+
+validate_password 组件: 这是一个MySQL服务器的组件，用于评估密码强度和执行密码策略。
+Estimated strength of the password: 这里显示的是密码的预估强度，100 表示非常强。
+Change the password for root?: 系统询问是否要更改 root 用户的密码。
+输入 y|Y 确认: 如果想要更改密码，需要输入 'y' 或者 'Y'，然后按回车确认。如果不想更改密码，可以输入任意其他键。
+
+Remove anonymous users? (Press y|Y for Yes, any other key for No) : 如果您希望移除这个匿名用户，请输入 'y' 或者 'Y'，然后按回车确认。
+
+Disallow root login remotely? (Press y|Y for Yes, any other key for No) : 如果您希望禁止 root 用户远程登录，请输入 'y' 或者 'Y'，然后按回车确认。
+
+Remove test database and access to it? (Press y|Y for Yes, any other key for No) : 如果您希望移除 'test' 数据库和其访问权限，请输入 'y' 或者 'Y'，然后按回车确认
+
+Reload privilege tables now? (Press y|Y for Yes, any other key for No) :如果您希望立即应用之前所做的所有更改，请输入 'y' 或者 'Y'，然后按回车确认。
+
+
+登入mysql部分
+7:
+mysql -uroot -p
+D#p8T!k@2024
+首次更改密码：
+ALTER USER 'root'@'localhost' IDENTIFIED BY 'Liuxiao2@';
+
+8:  降低密码强度   创建新用户   更新权限
+
+完全 禁用/启用 密码验证:没有任何密码策略在起作用
+sql:
+UNINSTALL COMPONENT 'file://component_validate_password';
+INSTALL COMPONENT 'file://component_validate_password';
+
+更改密码加密认证方式
+CREATE USER 'root'@'%' IDENTIFIED BY 'Liuxiao2@';
+ALTER USER 'root'@'%' IDENTIFIED WITH mysql_native_password BY 'Liuxiao2@';
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;
+
+
+单独设置：
+将密码验证策略设置为最低级别（LOW）：
+sql:
+SET GLOBAL validate_password.policy = LOW;
+
+然后，将密码最小长度设置为您希望的值，例如3：
+sql:
+SET GLOBAL validate_password.length = 3;
+
+关闭其他验证：
+sql:
+SET GLOBAL validate_password.mixed_case_count = 0;
+SET GLOBAL validate_password.number_count = 0;
+SET GLOBAL validate_password.special_char_count = 0;  
+
+9:
+FLUSH PRIVILEGES;
+
+配置远程访问（如果需要）：
+编辑MySQL配置文件：
+nano /etc/my.cnf
+在[mysqld]部分添加：
+bind-address = 0.0.0.0
+ctrl o 保存
+CTRL x 退出
+重启MySQL服务：
+systemctl restart mysqld
+
+10:创建用户
+CREATE USER 'scm'@'%' IDENTIFIED BY 'scm';
+11：设置密码策略
+ALTER USER 'scm'@'%' IDENTIFIED WITH mysql_native_password BY 'scm';
+12：配置权限
+grant all privileges on *.* to 'scm'@'%';
+13:
+FLUSH PRIVILEGES;
+
+
+更新MySQL：
+检查可用更新：
+Copysudo yum check-update mysql-server
+
+备份数据（重要）：
+Copysudo mysqldump --all-databases > mysql_backup.sql
+
+停止 MySQL 服务：
+Copysudo systemctl stop mysqld
+
+更新 MySQL：
+Copysudo yum update mysql-server
+
+启动 MySQL 服务：
+Copysudo systemctl start mysqld
+
+检查 MySQL 版本：
+Copymysql --version
+
+启用自动更新（慎用）：
+Copysudo yum-config-manager --enable mysql80-community-updates
+禁用自动更新：
+Copysudo yum-config-manager --disable mysql80-community-updates
+
+
+
+
+
+
+-- 卸载密码验证组件 (可选，根据需求)
+UNINSTALL COMPONENT 'file://component_validate_password';
+
+-- 创建root用户并设置远程访问
+CREATE USER 'root'@'%' IDENTIFIED BY 'Liuxiao2@';
+ALTER USER 'root'@'%' IDENTIFIED WITH mysql_native_password BY 'Liuxiao2@';
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;
+
+-- 创建scm用户并设置权限
+CREATE USER 'scm'@'%' IDENTIFIED BY 'scm';
+ALTER USER 'scm'@'%' IDENTIFIED WITH mysql_native_password BY 'scm';
+GRANT ALL PRIVILEGES ON *.* TO 'scm'@'%';
+
+-- 刷新权限
+FLUSH PRIVILEGES;
+
+
+
+
+主从复制：
+主：
+vim /etc/my.cnf
+
+#mysql 服务ID，保证整个集群环境中唯一，取值范围：1 – 232-1，默认为1
+server-id=1
+#是否只读,1 代表只读, 0 代表读写
+read-only=0
+#忽略的数据, 指不需要同步的数据库
+#binlog-ignore-db=mysql
+#指定同步的数据库
+#binlog-do-db=db01
+
+systemctl restart mysqld
+
+	创建可用于复制的用户（可选，可以使用root用户）
+	#创建itcast用户，并设置密码，该用户可在任意主机连接该MySQL服务
+	CREATE USER 'itcast'@'%' IDENTIFIED WITH mysql_native_password BY 'Root@123456';
+	#为 'itcast'@'%' 用户分配主从复制权限
+	GRANT REPLICATION SLAVE ON *.* TO 'itcast'@'%';
+
+通过指令，查看二进制日志坐标
+
+
+
+从:
+vim /etc/my.cnf
+
+#mysql 服务ID，保证整个集群环境中唯一，取值范围：1 – 232-1，默认为1
+server-id=2
+#是否只读,1 代表只读, 0 代表读写
+read-only=1
+
+systemctl restart mysqld
+
+CHANGE REPLICATION SOURCE TO SOURCE_HOST='192.168.88.102', SOURCE_USER='root',
+SOURCE_PASSWORD='Liuxiao2@', SOURCE_LOG_FILE='binlog.000005',
+SOURCE_LOG_POS=157;
+
+创建需要同步的仓库！
+CREATE DATABASE wordpress DEFAULT CHARACTER SET utf8mb4;
+
+start replica ;
+
+show replica status ;
+
+查看表是否都同步成功
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

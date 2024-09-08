@@ -1,0 +1,20 @@
+神级报错:
+Error: A JNI error has occurred, please check your installation and try again
+1:检查Java-version  javac -version
+2:项目结构---模块---"+"号,引入java home目录
+3:http://t.csdn.cn/xCB00
+4:http://t.csdn.cn/ekhuD
+
+
+
+com.alibaba.fastjson.JSONException: syntax error, position at 0, name http_req_header
+json报错:name http_req_header这个key的value有问题.可能是出现反斜杠"\"
+解决:String replace = s.replace("\\\\", "");:将"\"反斜杠替换为空字符串
+
+Error: A JNI error has occurred, please check your installation and try again
+https://blog.csdn.net/weixin_42376686/article/details/124006881?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522167038555216782425629373%2522%252C%2522scm%2522%253A%252220140713.130102334..%2522%257D&request_id=167038555216782425629373&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~all~top_positive~default-1-124006881-null-null.142^v68^control,201^v4^add_ask,213^v2^t3_control1&utm_term=Error%3A%20A%20JNI%20error%20has%20occurred%2C%20please%20check%20your%20installation%20and%20try%20again&spm=1018.2226.3001.4187
+
+1:进入的窗口右上角处，点击进入 Edit Configurations
+2:运行时有的可以运行，有的不能运行，可以运行的设置中有红框中的参数。
+3:不能运行的缺失了部分参数--编辑配置,修改选项,java,将provid范围的依赖添加到类路径(选中)--确定
+4:ok

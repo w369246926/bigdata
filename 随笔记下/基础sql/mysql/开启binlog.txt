@@ -1,0 +1,39 @@
+vim /etc/my.cnf
+
+[mysqld]
+
+datadir=/var/lib/mysql
+socket=/var/lib/mysql/mysql.sock
+
+#开启binlog
+log-bin = mysql-bin
+#设置server-id
+server-id=1
+innodb_flush_log_at_trx_commit=1
+sync_binlog=1
+# 选择 ROW 模式
+binlog-format=ROW
+#指定具体要同步的数据库，也可以不设置
+binlog-do-db=testdb
+
+#开启gtid
+gtid-mode=on
+#强制 gtid 和事务的一致性
+enforce-gtid-consistency=1
+#加上这一条,让从库都更新binlog
+log-slave-updates
+
+# Disabling symbolic-links is recommended to prevent assorted security risks
+symbolic-links=0
+
+# Recommended in standard MySQL setup
+sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
+
+
+输入sql更改密码位数及密码安全性：
+SET GLOBAL validate_password_length=4;
+SET GLOBAL validate_password_policy=0;
+开启设置密码操作
+plugin-load-add=validate_password.so：插件的加载方法，每次服务器启动时都必须给出该选项；
+
+validate-password=FORCE_PLUS_PERMANENT：validate-password在服务器启动时使用该选项来控制插件的激活。

@@ -1,0 +1,57 @@
+CREATE TABLE employee_information (
+    emp_id INT,
+    name VARCHAR,
+	emp_ip INT,
+    dept_id DOUBLE
+) WITH (
+    'connector' = 'filesystem',
+    'path' = '/testdata/score.csv',
+    'format' = 'csv'
+);
+
+CREATE TABLE department_counts (
+    emp_id INT,
+    name VARCHAR,
+	emp_ip INT,
+    dept_id DOUBLE
+);
+
+CREATE CATALOG myhive WITH (
+    'type' = 'hive',
+    'default-database' = 'mydatabase',
+    'hive-conf-dir' = '/export/server/flink-1.13.1/conf'
+);
+
+CREATE TABLE MyUserTable (
+  -- declare the schema of the table
+  `user` BIGINT,
+  `message` STRING,
+  `rowtime` TIMESTAMP(3) METADATA FROM 'timestamp',    -- use a metadata column to access Kafka's record timestamp
+  `proctime` AS PROCTIME(),    -- use a computed column to define a proctime attribute
+  WATERMARK FOR `rowtime` AS `rowtime` - INTERVAL '5' SECOND    -- use a WATERMARK statement to define a rowtime attribute
+) WITH (
+  -- declare the external system to connect to
+  'connector' = 'kafka',
+  'topic' = 'flinksql',
+  'scan.startup.mode' = 'earliest-offset',
+  'properties.bootstrap.servers' = 'localhost:9092',
+  'format' = 'json'   -- declare a format for this system
+)
+
+CREATE TABLE product(
+	id INT,			-- 商品编号
+	NAME VARCHAR(20),	-- 商品名称
+	price DOUBLE,		-- 商品价格
+	brand VARCHAR(10),	-- 商品品牌
+	stock INT,		-- 商品库存
+	insert_time DATE        -- 添加时间
+)WITH (
+  -- declare the external system to connect to
+  'connector' = 'kafka',
+  'topic' = 'flinksql',
+  'scan.startup.mode' = 'earliest-offset',
+  'properties.bootstrap.servers' = 'localhost:9092',
+  'format' = 'json'   -- declare a format for this system
+);
+
+INSERT INTO product (id) VALUES (2);

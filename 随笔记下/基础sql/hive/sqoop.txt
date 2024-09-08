@@ -1,0 +1,13 @@
+普通:
+
+
+hcatelog方式:
+sqoop import \
+--connect jdbc:mysql://192.168.88.161:3306/nev \
+--username root \
+--password 123456 \
+--query 'select id,referrer,from_url,landing_page_url,url_title,platform_description,other_params,history, "2019-07-01" as start_time from web_chat_text_ems_2019_07 where $CONDITIONS' \
+--hcatalog-database itcast_ods \
+--hcatalog-table web_chat_text_ems \
+-m 3 \
+--split-by id

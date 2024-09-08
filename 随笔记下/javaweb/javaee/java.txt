@@ -1,0 +1,11 @@
+String 字符串中添加变量
+String sql = "UPDATE bus_devices SET dev_status='在线' where dev_sn='"+devsn+"'"
+
+生成没有横线的UUID
+        <dependency>
+            <groupId>cn.hutool</groupId>
+            <artifactId>hutool-all</artifactId>
+            <version>5.3.4</version>
+        </dependency>
+                        IdUtil.simpleUUID();
+

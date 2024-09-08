@@ -1,0 +1,18 @@
+查询job
+http://10.10.41.251:8081/jobs/overview
+上传JAR包
+http://10.10.41.251:8081/jars/upload
+body:
+key:   application/java-archive
+value:     jar包
+提交的JAR包id
+http://10.10.41.251:8081/v1/jars
+运行程序
+http://10.10.41.251:8081/v1/jars/ed455b81-c2e5-4b8b-a81f-c093f03bb004_tock1.12.4-1.0-SNAPSHOT.jar/run?entry-class=flink.Tockjson5&program-args=--min 15
+
+取消某个job
+http://10.10.41.251:8081/jobs/773979a5ccf6f3c2fbd03f9181d291c7/yarn-cancel
+删除JAR包
+http://10.10.41.251:8081/jars/152520f0-fd8e-4c05-af07-effe47153f1b_tock1.12.4-1.0-SNAPSHOT.jar
+查看某个job的具体信息
+http://10.10.41.251:8081/jobs/a76d4acee88fe882d9b38498b9d552b6

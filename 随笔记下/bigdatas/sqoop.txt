@@ -1,0 +1,7 @@
+https://code84.com/248053.html
+一、Caused by: java.lang.ClassNotFoundException: org.apache.hadoop.hive.conf.HiveConf$ConfVars
+sqoop缺少几个hive的包
+cp $HIVE_HOME/lib/hive-shims* $SQOOP_HOME/lib/
+二、ERROR sqoop.Sqoop: Got exception running Sqoop: java.lang.NullPointerException
+修改sqoop-env.sh
+export HCAT_HOME=$HIVE_HOME/hcatalog

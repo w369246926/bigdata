@@ -1,0 +1,5 @@
+使用命令函实用程序mysqldump转储所有数据库内容到某个外部文件
+可用命令行实用程序mysqlhotcopy从一个数据库复制所有数据
+使用BACKUP TABLE 或· SELECT INTO OUTFILE转储所有数据到某个外部文件
+为了保证所有数据都被写到磁盘（包括索引数据），可能需要在进行备份前使用 FLUSH TABLES 语句
+

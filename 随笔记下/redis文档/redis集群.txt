@@ -1,0 +1,41 @@
+https://blog.csdn.net/qq_46093575/article/details/124830695?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522167809425316800197036634%2522%252C%2522scm%2522%253A%252220140713.130102334.pc%255Fall.%2522%257D&request_id=167809425316800197036634&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~all~first_rank_ecpm_v1~rank_v31_ecpm-1-124830695-null-null.142^v73^insert_down3,201^v4^add_ask,239^v2^insert_chatgpt&utm_term=docker%20%E5%88%86%E5%B8%83%E5%BC%8Fredis%E9%9B%86%E7%BE%A4%E6%90%AD%E5%BB%BA&spm=1018.2226.3001.4187
+
+
+#第一台redis服务
+docker run -d --name=redis1 --net host --privileged=true -v /data/redis/share/redis1:/data redis:6.0.8 --cluster-enabled yes --appendonly yes --port 6381
+#第二台redis服务
+docker run -d --name=redis2 --net host --privileged=true -v /data/redis/share/redis2:/data redis:6.0.8 --cluster-enabled yes --appendonly yes --port 6382
+#第三台redis服务
+docker run -d --name=redis3 --net host --privileged=true -v /data/redis/share/redis3:/data redis:6.0.8 --cluster-enabled yes --appendonly yes --port 6383
+#第四台redis服务
+docker run -d --name=redis4 --net host --privileged=true -v /data/redis/share/redis4:/data redis:6.0.8 --cluster-enabled yes --appendonly yes --port 6384
+#第五台redis服务
+docker run -d --name=redis5 --net host --privileged=true -v /data/redis/share/redis5:/data redis:6.0.8 --cluster-enabled yes --appendonly yes --port 6385
+#第六台redis服务
+docker run -d --name=redis6 --net host --privileged=true -v /data/redis/share/redis6:/data redis:6.0.8 --cluster-enabled yes --appendonly yes --port 6386
+
+
+#进入redis容器
+    docker exec -it redis1 /bin/bash
+#配置redis集群
+redis-cli --cluster create 192.168.200.130:6381 192.168.200.130:6382 192.168.200.130:6383 192.168.200.130:6384 192.168.200.130:6385 192.168.200.130:6386 --cluster-replicas 1
+
+
+三台服务器 密码 对外开放 版本：
+
+docker run -d --name=redis1 --net host --privileged=true -v /data/redis/share/redis1:/data --add-host hadoop101:192.168.88.101 --add-host hadoop102:192.168.88.102 --add-host hadoop103:192.168.88.103 redis:6.0.8 --requirepass 123456 --cluster-enabled yes --appendonly yes --port 6379 --bind hadoop101 --cluster-announce-ip 192.168.88.101
+docker run -d --name=redis2 --net host --privileged=true -v /data/redis/share/redis2:/data --add-host hadoop101:192.168.88.101 --add-host hadoop102:192.168.88.102 --add-host hadoop103:192.168.88.103 redis:6.0.8 --requirepass 123456 --cluster-enabled yes --appendonly yes --port 6380 --bind hadoop101 --cluster-announce-ip 192.168.88.101
+
+docker run -d --name=redis3 --net host --privileged=true -v /data/redis/share/redis3:/data --add-host hadoop101:192.168.88.101 --add-host hadoop102:192.168.88.102 --add-host hadoop103:192.168.88.103 redis:6.0.8 --requirepass 123456 --cluster-enabled yes --appendonly yes --port 6379 --bind hadoop102 --cluster-announce-ip 192.168.88.102
+docker run -d --name=redis4 --net host --privileged=true -v /data/redis/share/redis4:/data --add-host hadoop101:192.168.88.101 --add-host hadoop102:192.168.88.102 --add-host hadoop103:192.168.88.103 redis:6.0.8 --requirepass 123456 --cluster-enabled yes --appendonly yes --port 6380 --bind hadoop102 --cluster-announce-ip 192.168.88.102
+
+docker run -d --name=redis5 --net host --privileged=true -v /data/redis/share/redis5:/data --add-host hadoop101:192.168.88.101 --add-host hadoop102:192.168.88.102 --add-host hadoop103:192.168.88.103 redis:6.0.8 --requirepass 123456 --cluster-enabled yes --appendonly yes --port 6379 --bind hadoop103 --cluster-announce-ip 192.168.88.103
+docker run -d --name=redis6 --net host --privileged=true -v /data/redis/share/redis6:/data --add-host hadoop101:192.168.88.101 --add-host hadoop102:192.168.88.102 --add-host hadoop103:192.168.88.103 redis:6.0.8 --requirepass 123456 --cluster-enabled yes --appendonly yes --port 6380 --bind hadoop103 --cluster-announce-ip 192.168.88.103
+
+#进入redis容器
+docker exec -it redis1 /bin/bash
+#配置redis集群
+redis-cli -a 123456 --cluster create 192.168.88.101:6379 192.168.88.101:6380 192.168.88.102:6379 192.168.88.102:6380 192.168.88.103:6379 192.168.88.103:6380 --cluster-replicas 1
+
+cluster info
+

@@ -1,0 +1,42 @@
+crontab [ -u user ] { -l | -r | -e }
+//省略用户表表示操作当前用户的crontab
+    -e      (编辑工作表)
+    -l      (列出工作表里的命令)
+    -r      (删除工作表)
+f1	f2	f3	f4	f5	command
+分	时	日	月	周	命令
+第1列表示分钟0～59 每分钟用*或者 */1表示
+第2列表示小时0～23（0表示0点）
+第3列表示日期1～31
+第4列表示月份1～12
+第5列标识号星期0～6（0表示星期天）
+第6列要运行的命令
+45 4 1,10,22 * * /etc/init.d/smb restart 每月1、10、22日的4 : 45重启smb
+
+10 1 * * 6,0 /etc/init.d/smb restart  每周六、周日的1 : 10重启smb
+
+0,30 18-23 * * * /etc/init.d/smb restart  每天18 : 00至23 : 00之间每隔30分钟重启smb
+
+0 23 * * 6 /etc/init.d/smb restart  每星期六的晚上11 : 00 pm重启smb
+
+* */1 * * * /etc/init.d/smb restart  每一小时重启smb
+
+* 23-7/1 * * * /etc/init.d/smb restart  晚上11点到早上7点之间，每隔一小时重启smb
+0 */2 * * * /sbin/service httpd restart  每两个小时重启一次apache
+
+50 7 * * * /sbin/service sshd start  每天7：50开启ssh服务
+
+50 22 * * * /sbin/service sshd stop  每天22：50关闭ssh服务
+
+0 0 1,15 * * fsck /home  每月1号和15号检查/home 磁盘
+
+1 * * * * /home/bruce/backup  每小时的第一分执行 /home/bruce/backup这个文件
+
+00 03 * * 1-5 find /home "*.xxx" -mtime +4 -exec rm {} \;  每周一至周五3点钟，在目录/home中，查找文件名为*.xxx的文件，并删除4天前的文件。
+
+30 6 */10 * * ls  每月的1、11、21、31日是的6：30执行一次ls命令
+cat start_cbp.sh
+#!/bin/sh
+source /etc/profile
+export RUN_CONF=/home/d139/conf/platform/cbp/cbp_jboss.conf
+/usr/local/jboss-4.0.5/bin/run.sh -c mev &

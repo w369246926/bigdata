@@ -1,0 +1,17 @@
+解决方案一般有以下8种，可以根据自己项目需求进行设计调整
+
+UUID
+
+数据库自增
+
+号段模式
+
+Redis 生成ID
+
+雪花算法（SnowFlake）
+
+百度 Uidgenerator
+
+美团 Leaf
+
+滴滴 TinyID

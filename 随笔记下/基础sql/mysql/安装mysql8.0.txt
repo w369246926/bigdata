@@ -1,0 +1,55 @@
+#删除之前的MySQL程序和MySQL的数据：先去/etc/my.cnf文件中找到你的mysql目录
+rpm -qa|grep -i mysql
+rpm -e --nodeps akonadi-mysql-1.9.2-4.el7.x86_64
+rpm -e --nodeps qt-mysql-4.8.5-13.el7.x86_64
+rpm -e --nodeps perl-DBD-MySQL-4.023-5.el7.x86_64
+rpm -e --nodeps mysql-libs-5.1.73-7.el6.x86_64
+#下载RPM文件上传
+https://dev.mysql.com/downloads/repo/yum/
+安装命令
+yum -y install mysql80-community-release-el7-3.noarch.rpm
+安装mysql：
+yum install -y install mysql-community-server
+启动：
+systemctl start mysqld.service
+查看默认密码：
+grep "password" /var/log/mysqld.log
+初次登录：修改密码：退出重新登陆；
+ ALTER USER 'root'@'localhost' IDENTIFIED BY 'test(123456)TEST';
+修改密码策略
+查看
+show variables like '%validate_password.policy%';
+修改
+set global validate_password.policy=0;
+长度：
+查看
+show variables like ‘%validate_password.length%’;
+设置
+set global validate_password.length=1
+修改简单的密码：
+ALTER USER 'root'@'localhost' IDENTIFIED BY '123456';
+开启远程连接：
+use mysql;
+alter user 'root'@'%' identified with mysql_native_password by '123456';
+
+#添加新用户
+ create user 'scm'@'localhost' identified by 'scm';
+ 其中username为自定义的用户名；host为登录域名，host为'%'时表示为 任意IP，为localhost时表示本机，或者填写指定的IP地址；paasword为密码
+#用户授权
+  grant all privileges on scm.* to 'scm'@'%' with grant option;
+  grant all privileges on *.* to 'username'@'%' with grant option;
+
+  -- 授予myuser用户全局级全部权限：
+  GRANT ALL PRIVILEGES ON *.* TO 'scm'@'%' IDENTIFIED BY '123456' WITH GRANT OPTION;
+  -- 授予myuser用户针对testdb数据库全部权限：
+  GRANT ALL PRIVILEGES ON scm.* TO 'scm'
+
+
+ 其中*.*第一个*表示所有数据库，第二个*表示所有数据表，如果不想授权全部那就把对应的*写成相应数据库或者数据表；username为指定的用户；%为该用户登录的域名
+
+#刷新
+FLUSH PRIVILEGES;
+
+#设置语法兼容老版本
+vim /etc/my.cnf
+sql_mode= STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION

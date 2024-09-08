@@ -1,0 +1,54 @@
+单机单节点
+./minio server /bigdata/part3/miniodata --console-address :9090 2>&1 &
+单机多节点(需要为4个以上挂载盘,不能为/root盘,)
+nohup ./minio server /opt/minioserver/miniodata /bigdata/part1/miniodata /bigdata/part2/miniodata /bigdata/part3/miniodata --address :9090 2>&1 &
+以上命令使用了一个跟文件夹代替,可以使用,但是会报错:Error: Disk: /opt/minioserver/miniodata is a root disk (*errors.errorString)
+
+集群部署
+创建目录：
+mkdir -p /opt/minio/{run,data1，data2} && mkdir -p /etc/minio
+mkdir -p /data/minio_data/
+上传Minio到/opt/minio/run
+集群启动文件配置
+    vim /opt/minio/run/run.sh
+
+    #!/bin/bash
+    export MINIO_ACCESS_KEY=admin
+    export MINIO_SECRET_KEY=adminbfd123
+    /opt/minio/run/minio server --config-dir /etc/minio \
+    --address "127.0.0.1:9029" \
+    http://192.168.1.1/opt/minio/data1 http://192.168.1.1/opt/minio/data2 \
+    http://192.168.1.2/opt/minio/data1 http://192.168.1.2/opt/minio/data2 \
+    http://192.168.1.3/opt/minio/data1 http://192.168.1.3/opt/minio/data2 \
+    http://192.168.1.4/opt/minio/data1 http://192.168.1.4/opt/minio/data2
+Minio默认9000端口，在配置文件中加入–address “127.0.0.1:9029” 可更改端口
+注意 ：
+MINIO_ACCESS_KEY：用户名，长度最小是5个字符
+MINIO_SECRET_KEY：密码，密码不能设置过于简单，不然minio会启动失败，长度最小是8个字符
+–config-dir：指定集群配置文件目录
+
+创建Minio.server
+vim /usr/lib/systemd/system/minio.service
+[Unit]
+Description=Minio service
+Documentation=https://docs.minio.io/
+
+[Service]
+WorkingDirectory=/opt/minio/run/
+ExecStart=/opt/minio/run/run.sh
+
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+
+权限修改
+chmod +x /usr/lib/systemd/system/minio.service && chmod +x /opt/minio/run/minio && chmod +x /opt/minio/run/run.sh
+
+启动集群
+systemctl daemon-reload
+systemctl start minio
+systemctl enable minio
+systemctl status minio.service
+注意：启动集群时一定要检查自己的防火墙是否是关闭状态，如果不是关闭状态，则会出错。

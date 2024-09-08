@@ -1,0 +1,52 @@
+创建node目录
+wget https://nodejs.org/dist/v14.15.1/node-v14.15.1-linux-x64.tar.xz
+解压
+tar xvf node-v14.15.1-linux-x64.tar.xz
+创建软连接
+ln -s /root/node-v14.15.1-linux-x64/bin/node /usr/local/bin/node
+ln -s /root/node-v14.15.1-linux-x64/bin/npm /usr/local/bin/npm
+18版本可能会报错
+{
+ln -s /home/fanxiao/node/node-v18.12.1-linux-x64/bin/node /usr/local/bin/node
+ln -s /home/fanxiao/node/node-v18.12.1-linux-x64/bin/npm /usr/local/bin/npm
+https://blog.csdn.net/qq_38225558/article/details/128641561
+}
+测试
+node -v
+npm -v
+#查看依赖下载位置
+npm config get registry
+#设置淘宝（加快下载速度）
+npm config set registry https://registry.npm.taobao.org
+
+安装cnpm
+npm install -g cnpm --registry=https://registry.npm.taobao.org
+ln -s /root/node-v14.15.1-linux-x64/bin/cnpm /usr/local/bin/cnpm
+部署测试项目
+# 进入root目录，创建example.js
+touch example.js
+
+# vim进入编辑模式
+vim example.js
+
+# 按i进入编辑模式，将如下内容复制进去；esc退出编辑，输入":wq" 保存并退出
+const http = require('http');
+const hostname = '0.0.0.0';
+const port = 3000;
+const server = http.createServer((req, res) => {
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'text/plain');
+    res.end('Hello World\n');
+});
+
+server.listen(port, hostname, () => {
+    console.log(`Server running at http://${hostname}:${port}/`);
+});
+
+# 运行项目
+node ~/example.js &
+
+关闭进程
+方法一：ps -ef | grep 进程名称（-e：显示所有进程；-f 完整输出信息；grep 模糊查找）
+方法二：pgrep 进程名称
+杀进程 kill -9 进程id

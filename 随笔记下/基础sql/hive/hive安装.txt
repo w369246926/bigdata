@@ -1,0 +1,193 @@
+安装hive
+
+wget https://mirrors.tuna.tsinghua.edu.cn/apache/hive/hive-2.3.9/apache-hive-2.3.9-bin.tar.gz
+2.  执行以下命令，解压hive安装包至 /opt/hadoop。
+tar -zxvf apache-hive-2.3.9-bin.tar.gz -C /opt/
+重命名文件夹
+mv /opt/apache-hive-2.3.9-bin /opt/hive
+修改hive的配置文件
+修改hive目录下hive-env.sh文件
+HADOOP_HOME=/export/servers/hadoop-2.7.5
+export HIVE_CONF_DIR=hive下的conf目录
+创建hive-site.xml
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<configuration>
+<property>
+      <name>javax.jdo.option.ConnectionUserName</name>
+      <value>root</value>
+  </property>
+  <property>
+      <name>javax.jdo.option.ConnectionPassword</name>
+      <value>12345678</value>
+  </property>
+  <property>
+      <name>javax.jdo.option.ConnectionURL</name>
+      <value>jdbc:mysql://39.106.69.133:3306/hive?createDatabaseIfNotExist=true&amp;useSSL=false</value>
+  </property>
+  <property>
+      <name>javax.jdo.option.ConnectionDriverName</name>
+      <value>com.mysql.jdbc.Driver</value>
+  </property>
+  <property>
+      <name>hive.metastore.schema.verification</name>
+      <value>false</value>
+  </property>
+  <property>
+    <name>datanucleus.schema.autoCreateAll</name>
+    <value>true</value>
+ </property>
+ <property>
+		<name>hive.server2.thrift.bind.host</name>
+		<value>39.106.69.133</value>
+   </property>
+</configuration>
+
+添加mysql的连接驱动包到hive的lib目录下
+https://dev.mysql.com/downloads/
+
+bleen启动失败，试试将hive.site文件放入hadoop/etc/hadoop/
+
+配置hive的环境变量
+
+echo 'export HIVE_HOME=/opt/hive/' >> /etc/profile
+echo 'export PATH=$PATH:$HIVE_HOME/bin' >> /etc/profile
+source /etc/profile
+输入hive启动
+
+-----------------------------------------
+安装hbase
+
+https://mirrors.tuna.tsinghua.edu.cn/apache/hbase/2.2.7/hbase-2.2.7-bin.tar.gz
+
+
+2.  执行以下命令，解压Hbase安装包至 /opt/hbase
+tar -zxvf hbase-2.2.7-bin.tar.gz -C /opt/
+重命名文件夹
+mv /opt/hbase-2.2.7-bin /opt/hbase
+修改hbase下conf下hbase-env文件
+28行和126行
+export JAVA_HOME=/usr/java8
+export HBASE_MANAGES_ZK=false
+
+
+
+写入环境变量
+echo 'export HBASE_HOME=/opt/hbase/' >> /etc/profile
+echo 'export PATH=$PATH:$HBASE_HOME/bin' >> /etc/profile
+echo 'export PATH=$PATH:$HBASE_HOME/sbin' >> /etc/profile
+source /etc/profile   
+
+echo 'export HBASE_HOME=/export/server/hbase/' >> /etc/profile
+echo 'export PATH=$PATH:$HBASE_HOME/bin' >> /etc/profile
+echo 'export PATH=$PATH:$HBASE_HOME/sbin' >> /etc/profile
+source /etc/profile 
+
+/export/server/ 
+
+5.  执行以下命令，测试hbase是否安装成功。
+start-hbase.sh
+
+hbase shell
+
+-----------------------------------------
+安装SQOOP
+wget http://archive.apache.org/dist/sqoop/1.4.7/sqoop-1.4.7.bin__hadoop-2.6.0.tar.gz
+2.  执行以下命令，解压Hadoop安装包至 /opt/hadoop。
+tar -zxvf sqoop.tar.gz -C /opt/
+重命名文件夹
+mv /opt/sqoop-1.4.7.bin__hadoop-2.6.0 /opt/sqoop
+进入conf目录下
+修改以下配置文件
+mv sqoop-env-template.sh sqoop-env.sh
+vi sqoop-env.sh
+插入环境变量
+export HADOOP_COMMON_HOME= /opt/hadoop
+export HADOOP_MAPRED_HOME= /opt/hadoop
+export HIVE_HOME= /opt/hive
+加入 mysql 的 jdbc 驱动包
+cp /hive/lib/mysql-connector-java-5.1.32.jar $SQOOP_HOME/lib/
+验证启动
+bin/sqoop list-databases \
+--connect jdbc:mysql://localhost:3306/ \
+--username root --password 12345678
+
+-------------------------------------------------------
+安装flume
+wget https://mirrors.tuna.tsinghua.edu.cn/apache/flume/1.9.0/apache-flume-1.9.0-bin.tar.gz
+2.  执行以下命令，解压Hadoop安装包至 /opt/hadoop。
+tar -zxvf apache-flume-1.9.0-bin.tar.gz -C /opt/
+重命名文件夹
+mv /opt/apache-flume-1.9.0-bin /opt/flume
+
+__________________________________________________________________________
+安装oozip
+core-site.xml
+<property>
+ <name>hadoop.proxyuser.root.hosts</name>
+ <value>*</value>
+</property>
+<property>
+ <name>hadoop.proxyuser.root.groups</name>
+ <value>*</value>
+</property>
+----
+mapred-size.xml
+<property>
+ <name>mapreduce.framwork.name</name>
+ <value>yarn</value>
+</property>
+<property>
+ <name>mapreduce.jobhistory.address</name>
+ <value>localhost:10020</value>
+ <description>MapReduce JobHistory Server IPC host:port</description>
+</property>
+<property>
+ <name>mapreduce.jobhistory.webapp.address</name>
+ <value>39.106.69.133:19888</value>
+ <description>MapReduce JobHistory Server Web UI host:port</description>
+</property>
+<!-- 配置运行过的日志存放在 hdfs 上的存放路径 -->
+<property>
+ <name>mapreduce.jobhistory.done-dir</name>
+ <value>/export/data/history/done</value>
+</property>
+<!-- 配置正在运行中的日志在 hdfs 上的存放路径 -->
+<property>
+ <name>mapreduce.jobhistory.intermediate-done-dir</name>
+ <value>/export/data/history/done_intermediate</value>
+</property>
+
+下载oozie下载maven
+
+wget https://mirrors.tuna.tsinghua.edu.cn/apache/oozie/5.2.1/oozie-5.2.1.tar.gz
+
+wget https://mirrors.tuna.tsinghua.edu.cn/apache/maven/maven-3/3.8.1/binaries/apache-maven-3.8.1-bin.tar.gz
+
+
+echo 'export MAVEN_HOME=/opt/maven' >> /etc/profile
+echo 'export PATH=$PATH:$MAVEN_HOME/bin' >> /etc/profile
+
+echo 'export OOZIE_HOME=/opt/oozie' >> /etc/profile
+echo 'export OOZIE_CONFIG=$OOZIE_HOME/conf' >> /etc/profile
+echo 'export CLASSPATH=$CLASSPATH:$OOZIE_HOME/bin' >> /etc/profile
+source /etc/profile
+----------------------------------------------------------------------
+
+安装azkaban
+wget https://mirrors.tuna.tsinghua.edu.cn/apache//ant/binaries/apache-ant-1.10.11-bin.tar.gz
+
+tar -zxvf apache-ant-1.10.11-bin.tar.gz -C /opt
+
+mv /opt/apache-ant-1.10.11-bin /opt/ant
+
+echo 'export ANT_HOME=/opt/ant/' >>/etc/profile
+echo 'export PATH=$PATH:$ANT_HOME/bin' >>/etc/profile
+source /etc/profile
+
+安装node
+
+
+echo 'export NODE_HOME=/opt/node/' >>/etc/profile
+echo 'export PATH=$PATH:$NODE_HOME/bin' >>/etc/profile
+source /etc/profile

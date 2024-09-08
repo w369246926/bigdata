@@ -1,0 +1,27 @@
+flink on yarn
+操作步骤:
+打开yarn配置页面（每台hadoop节点都需要修改）
+CDH集群地址:
+/opt/cloudera/parcels/CDH/lib/hadoop-yarn/etc/hadoop
+vim etc/hadoop/yarn-site.xml
+添加
+export HADOOP_CONF_DIR=/opt/cloudera/parcels/CDH/lib/hadoop/etc/hadoop
+<property>
+    <name>yarn.nodemanager.vmem-check-enabled</name>
+    <value>false</value>
+</property>
+是否启动一个线程检查每个任务正使用的虚拟内存量，如果任务超出分配值，则直接将其杀掉，默认是true。
+在这里面我们需要关闭，因为对于flink使用yarn模式下，很容易内存超标，这个时候yarn会自动杀掉job
+
+关闭HDFS权限：
+dfs.permissions
+
+注意:
+如果使用的是flink on yarn方式，想切换回standalone模式的话，需要删除文件：【/tmp/.yarn-properties-root】
+因为默认查找当前yarn集群中已有的yarn-session信息中的jobmanager
+
+如果是分离模式运行的YARN JOB后，其运行完成会自动删除这个文件
+但是会话模式的话，如果是kill掉任务，其不会执行自动删除这个文件的步骤，所以需要我们手动删除这个文件。
+
+
+

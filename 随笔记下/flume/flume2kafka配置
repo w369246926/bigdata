@@ -1,0 +1,183 @@
+自定义sink
+a1.sources  =  r1
+a1.channels  =  c1
+
+a1.sources.r1.type  = syslogudp
+a1.sources.r1.bind  = localhost
+a1.sources.r1.port  = 20181
+
+
+a1.channels.c1.type = org.apache.flume.channel.kafka.KafkaChannel
+a1.channels.c1.kafka.bootstrap.servers = localhost:9092
+a1.channels.c1.kafka.topic = udp
+a1.channels.c1.parseAsFlumeEvent = false
+a1.channels.c1.kafka.producer.max.request.size = 704857600
+
+a1.sources.r1.channels  =  c1
+
+自定义sink不同topic
+a1.sources  =  r1
+a1.channels  = trace-channel warning-channel AudioDemode-channel SingalList-channel emmsAV-channel
+a1.sinks = trace-sink warning-sink AudioDemode-sink SingalList-sink emmsAV-sink
+
+
+a1.sources.r1.type  =  cn.ac.iie.dc.TCPSource
+a1.sources.r1.host  = 172.16.10.161
+a1.sources.r1.port  = 9997
+a1.sources.r1.max-line-length = 10240
+
+
+# selector
+a1.sources.r1.selector.type = multiplexing
+a1.sources.r1.selector.header = topic
+a1.sources.r1.selector.mapping.trace = trace-channel
+a1.sources.r1.selector.mapping.warning = warning-channel
+a1.sources.r1.selector.mapping.AudioDemode = AudioDemode-channel
+a1.sources.r1.selector.mapping.SingalList = SingalList-channel
+a1.sources.r1.selector.mapping.emmsAV = emmsAV-channel
+
+#channels
+#trace channel
+#a1.channels.trace-channel.type = org.apache.flume.channel.kafka.KafkaChannel
+#a1.channels.trace-channel.kafka.bootstrap.servers = 172.16.10.161:9092,172.16.10.162:9092,172.16.10.163:9092
+#a1.channels.trace-channel.kafka.topic = trace
+#a1.channels.trace-channel.parseAsFlumeEvent = false
+#a1.channels.trace-channel.kafka.producer.max.request.size = 704857600
+a1.channels.trace-channel.type=memory
+a1.channels.trace-channel.capacity=3000
+a1.channels.trace-channel.transactionCapacity=300
+
+
+#warning channel
+#a1.channels.warning-channel.type = org.apache.flume.channel.kafka.KafkaChannel
+#a1.channels.warning-channel.kafka.bootstrap.servers = 172.16.10.161:9092,172.16.10.162:9092,172.16.10.163:9092
+#a1.channels.warning-channel.kafka.topic = warning
+#a1.channels.warning-channel.parseAsFlumeEvent = false
+#a1.channels.warning-channel.kafka.producer.max.request.size = 704857600
+a1.channels.warning-channel.type=memory
+a1.channels.warning-channel.capacity=3000
+a1.channels.warning-channel.transactionCapacity=30
+
+#AudioDemode channel
+#a1.channels.AudioDemode-channel.type = org.apache.flume.channel.kafka.KafkaChannel
+#a1.channels.AudioDemode-channel.kafka.bootstrap.servers = 172.16.10.161:9092,172.16.10.162:9092,172.16.10.163:9092
+#a1.channels.AudioDemode-channel.kafka.topic = AudioDemode
+#a1.channels.AudioDemode-channel.parseAsFlumeEvent = false
+#a1.channels.AudioDemode-channel.kafka.producer.max.request.size = 704857600
+a1.channels.AudioDemode-channel.type=memory
+a1.channels.AudioDemode-channel.capacity=3000
+a1.channels.AudioDemode-channel.transactionCapacity=30
+
+#SingalList channel
+#a1.channels.SingalList-channel.type = org.apache.flume.channel.kafka.KafkaChannel
+#a1.channels.SingalList-channel.kafka.bootstrap.servers = 172.16.10.161:9092,172.16.10.162:9092,172.16.10.163:9092
+#a1.channels.SingalList-channel.kafka.topic = SingalList
+#a1.channels.SingalList-channel.parseAsFlumeEvent = false
+#a1.channels.SingalList-channel.kafka.producer.max.request.size = 704857600
+a1.channels.SingalList-channel.type=memory
+a1.channels.SingalList-channel.capacity=3000
+a1.channels.SingalList-channel.transactionCapacity=100
+
+#emmsAV channel
+#a1.channels.emmsAV-channel.type = org.apache.flume.channel.kafka.KafkaChannel
+#a1.channels.emmsAV-channel.kafka.bootstrap.servers = 172.16.10.161:9092,172.16.10.162:9092,172.16.10.163:9092
+#a1.channels.emmsAV-channel.kafka.topic = emmsAV
+#a1.channels.emmsAV-channel.parseAsFlumeEvent = false
+#a1.channels.emmsAV-channel.kafka.producer.max.request.size = 704857600
+a1.channels.emmsAV-channel.type=memory
+a1.channels.emmsAV-channel.capacity=3000
+a1.channels.emmsAV-channel.transactionCapacity=100
+
+
+#sinks
+# trace-sink
+a1.sinks.trace-sink.type = org.apache.flume.sink.kafka.KafkaSink
+a1.sinks.trace-sink.topic = trace
+a1.sinks.trace-sink.kafka.bootstrap.servers = 172.16.10.161:9092,172.16.10.162:9092,172.16.10.163:9092
+a1.sinks.trace-sink.max.message.size= 20000000
+a1.sinks.trace-sink.kafka.flumeBatchSize = 200
+a1.sinks.trace-sink.kafka.producer.acks = 1
+a1.sinks.trace-sink.kafka.producer.linger.ms = 1
+a1.sinks.trace-sink.kafka.producer.max.request.size = 704857600
+a1.sinks.trace-sink.kafka.producer.value.deserializer= org.apache.kafka.common.serialization.ByteBufferDeserializer
+
+#warning-sink
+a1.sinks.warning-sink.type = org.apache.flume.sink.kafka.KafkaSink
+a1.sinks.warning-sink.topic = warning
+a1.sinks.warning-sink.kafka.bootstrap.servers = 172.16.10.161:9092,172.16.10.162:9092,172.16.10.163:9092
+a1.sinks.warning-sink.max.message.size= 20000000
+a1.sinks.warning-sink.kafka.flumeBatchSize = 200
+a1.sinks.warning-sink.kafka.producer.acks = 1
+a1.sinks.warning-sink.kafka.producer.linger.ms = 1
+a1.sinks.warning-sink.kafka.producer.max.request.size = 704857600
+a1.sinks.warning-sink.kafka.producer.value.deserializer= org.apache.kafka.common.serialization.ByteBufferDeserializer
+
+#AudioDemode-sink
+a1.sinks.AudioDemode-sink.type = org.apache.flume.sink.kafka.KafkaSink
+a1.sinks.AudioDemode-sink.topic = AudioDemode
+a1.sinks.AudioDemode-sink.kafka.bootstrap.servers = 172.16.10.161:9092,172.16.10.162:9092,172.16.10.163:9092
+a1.sinks.AudioDemode-sink.max.message.size= 20000000
+a1.sinks.AudioDemode-sink.kafka.flumeBatchSize = 200
+a1.sinks.AudioDemode-sink.kafka.producer.acks = 1
+a1.sinks.AudioDemode-sink.kafka.producer.linger.ms = 1
+a1.sinks.AudioDemode-sink.kafka.producer.max.request.size = 704857600
+a1.sinks.AudioDemode-sink.kafka.producer.value.deserializer= org.apache.kafka.common.serialization.ByteBufferDeserializer
+
+#SingalList-sink
+a1.sinks.SingalList-sink.type = org.apache.flume.sink.kafka.KafkaSink
+a1.sinks.SingalList-sink.topic = SingalList
+a1.sinks.SingalList-sink.kafka.bootstrap.servers = 172.16.10.161:9092,172.16.10.162:9092,172.16.10.163:9092
+a1.sinks.SingalList-sink.max.message.size= 20000000
+a1.sinks.SingalList-sink.kafka.flumeBatchSize = 200
+a1.sinks.SingalList-sink.kafka.producer.acks = 1
+a1.sinks.SingalList-sink.kafka.producer.linger.ms = 1
+a1.sinks.SingalList-sink.kafka.producer.max.request.size = 704857600
+a1.sinks.SingalList-sink.kafka.producer.value.deserializer= org.apache.kafka.common.serialization.ByteBufferDeserializer
+
+#emmsAV-sink
+a1.sinks.emmsAV-sink.type = org.apache.flume.sink.kafka.KafkaSink
+a1.sinks.emmsAV-sink.topic = emmsAV
+a1.sinks.emmsAV-sink.kafka.bootstrap.servers = 172.16.10.161:9092,172.16.10.162:9092,172.16.10.163:9092
+a1.sinks.emmsAV-sink.max.message.size= 20000000
+a1.sinks.emmsAV-sink.kafka.flumeBatchSize = 200
+a1.sinks.emmsAV-sink.kafka.producer.acks = 1
+a1.sinks.emmsAV-sink.kafka.producer.linger.ms = 1
+a1.sinks.emmsAV-sink.kafka.producer.max.request.size = 704857600
+a1.sinks.emmsAV-sink.kafka.producer.value.deserializer= org.apache.kafka.common.serialization.ByteBufferDeserializer
+
+
+a1.sources.r1.channels  = trace-channel warning-channel AudioDemode-channel SingalList-channel emmsAV-channel
+a1.sinks.trace-sink.channel = trace-channel
+a1.sinks.warning-sink.channel = warning-channel
+a1.sinks.AudioDemode-sink.channel = AudioDemode-channel
+a1.sinks.SingalList-sink.channel = SingalList-channel
+a1.sinks.emmsAV-sink.channel = emmsAV-channel
+
+共用版sink
+
+a1.sources = r1
+a1.sinks = k1
+a1.channels = c1
+
+# Describe/configure the source
+a1.sources.r1.type = syslogudp
+a1.sources.r1.bind = localhost
+a1.sources.r1.port = 20181
+a1.sources.r1.max-line-length = 102400
+
+# Describe the sink
+a1.sinks.k1.type = org.apache.flume.sink.kafka.KafkaSink
+a1.sinks.k1.kafka.bootstrap.servers= localhost:9092
+a1.sinks.k1.kafka.topic=udp
+a1.sinks.k1.serializer.class=kafka.serializer.StringEncoder
+a1.sinks.k1.kafka.producer.acks=1
+a1.sinks.k1.custom.encoding=UTF-8
+
+# Use a channel which buffers events in memory
+a1.channels.c1.type = memory
+a1.channels.c1.capacity = 1000
+a1.channels.c1.transactionCapacity = 100
+
+# Bind the source and sink to the channel
+a1.sources.r1.channels = c1
+a1.sinks.k1.channel = c1

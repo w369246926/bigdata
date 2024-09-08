@@ -1,0 +1,50 @@
+4.6.2.1 	时间函数
+4.6.2.1.1 	unix_timestamp()日期转为时间戳
+1.unix_timestamp()   获取当前时间戳
+例如：
+select unix_timestamp()   --1565858389
+
+
+2.unix_timestamp(string timestame)   输入的时间戳格式必须为'yyyy-MM-dd HH:mm:ss',如不符合则返回null
+例如：
+select unix_timestamp('2019-08-15 16:40:00')   --1565858400
+select unix_timestamp('2019-08-15')  --null
+
+3.unix_timestamp(string date,string pattern)   将指定时间字符串格式字符串转化成unix时间戳,如不符合则返回null
+例如：
+select unix_timestamp('2019-08-15','yyyy-MM-dd')   --1565798400
+select unix_timestamp('2019-08-15 16:40:00','yyyy-MM-dd HH:mm:ss')   --1565858400
+select unix_timestamp('2019-08-15','yyyy-MM-dd HH:mm:ss')   --null
+
+4.6.2.1.2 	from_unixtime()时间戳转为日期
+1. from_unixtime(bigint unixtime,string format)  将时间戳秒数转化为UTC时间，并用字符串表示，可通过format规定的时间格式，指定输出的时间格式，其中unixtime 是10位的时间戳值，而13位的所谓毫秒的是不可以的。
+例如：
+select from_unixtime(1565858389,'yyyy-MM-dd HH:mm:ss')  --2019-08-15 16:39:49
+select from_unixtime(1565858389,'yyyy-MM-dd')   --2019-08-15
+
+2. 如果unixtime为13位的，需要先转成10位
+select from_unixtime(cast(1553184000488/1000 as int),'yyyy-MM-dd HH:mm:ss')   --2019-03-22 00:00:00
+select from_unixtime(cast(substr(1553184000488,1,10) as int),'yyyy-MM-dd HH:mm:ss')  --2019-03-22 00:00:00
+
+4.6.2.1.3 	当前时间
+select from_unixtime(unix_timestamp(),'yyyy-MM-dd HH:mm:ss')   -- 2019-08-15 17:18:55
+
+4.6.2.1.4 	获取时间所在的季度
+quarter('2015-04-08')    --2
+2015-04-08所在的季度为当年的第二个季度。
+
+4.6.2.2 	字符串截取函数
+大多数数据库中都有substr和substring两种字符串截取函数。但与其他的关系型数据库不同，在hive中，substr与substring函数的使用方式是完全一致的，属于同一个函数。
+4.6.2.2.1 	两个参数
+语法：substr(string A, int start)，substring(string A, int start)
+返回值: string
+说明：返回字符串A从start位置到结尾的字符串
+栗子：
+select substr('2020-06-06', 6), substring('2020-06-06', 6);     --06-06  06-06
+
+4.6.2.2.2 	三个参数
+语法: substr(string A, int start, int len)，substring(string A, intstart, int len)
+返回值: string
+说明：返回字符串A从start位置开始，长度为len的字符串。
+栗子：
+select substr('2020-06-06', 6,2), substring('2020-06-06', 6,2);     --06  06

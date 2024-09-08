@@ -1,0 +1,59 @@
+Namenode ports: 50470 --> 9871, 50070--> 9870, 8020 --> 9820
+Secondary NN ports: 50091 --> 9869,50090 --> 9868
+Datanode ports: 50020 --> 9867, 50010--> 9866, 50475 --> 9865, 50075 --> 9864
+Kms servers ports: 16000 --> 9600 (原先的16000与HMaster端口冲突)
+8088/cluster 查看yarn集群  19888/jobhistory 查看历史完成的Job任务
+
+mysql: 
+DDL:数据库和表结构操作, 数据类型-PPT:99~  varchar类型要给默认大小varchar(255),田间字段备注:COMMENT'123'.表外:COMMENT="123"
+
+
+hive:
+ods:元数据层
+dw:各个维度层:指标字段+维度字段+清洗字段+转化字段+关联字段
+app:
+索引:内部会建立索引表:包含索引列(主键),对应的索引数据存储的位置(数据位置)
+
+分区与分桶:
+1. 分桶对数据的处理比分区更加细粒度化：分区针对的是数据的存储路径；分桶针对的是数据文件；
+2. 分桶是按照列的哈希函数进行分割的，相对比较平均；而分区是按照列的值来进行分割的，容易造成数据倾斜；
+3. 分桶和分区两者不干扰，可以把分区表进一步分桶。
+create table test_buck(id int, name string)
+clustered by(id) sorted by (id asc) into 6 buckets
+row format delimited fields terminated by '\t';
+CLUSTERED BY来指定划分桶所用列；
+SORTED BY对桶中的一个或多个列进行排序；
+into 6 buckets指定划分桶的个数。
+分桶规则：HIVE对key的hash值除bucket个数取余数，保证数据均匀随机分布在所有bucket里。
+mapjoin:
+在Map阶段进行表之间的连接 ,节省了在Shuffle阶段时要进行的大量数据传输,在二个要连接的表中，有一个很大，有一个很小，这个小表可以存放在内存中而不影响性能。
+执行计划:
+TableScan:查看表
+alias: emp：所需要的表
+Statistics: Num rows: 2 Data size: 820 Basic stats: COMPLETE Column stats: NONE：这张表的基本统计信息：行数、大小等；
+expressions: empno (type: int), ename (type: string), job (type: string), mgr (type: int), hiredate (type: string), sal (type: double), comm (type: double), deptno (type: int)：表中需要输出的字段及类型
+outputColumnNames: _col0, _col1, _col2, _col3, _col4, _col5, _col6, _col7：输出的的字段编号
+compressed: true：输出是否压缩；
+input format: org.apache.hadoop.mapred.SequenceFileInputFormat：文件输入调用的Java类，显示以文本Text格式输入；
+output format: org.apache.hadoop.hive.ql.io.HiveSequenceFileOutputFormat：文件输出调用的java类，显示以文本Text格式输出；
+拉链表:
+1. 建立增量数据临时表update；
+2. 抽取昨日增量数据(新增和更新)到update表；
+3. 建立合并数据临时表tmp；
+4. 合并昨日增量数据（update表）与历史数据（拉链表）
+(1)	新数据end_time设为’9999-12-31’，也就是当前有效；
+(2)	如果增量数据有重复id的旧数据，将旧数据end_time更新为前天（昨日-1），也就是从昨天开始不再生效；
+(3)	合并后的数据写入tmp表；
+5. 将临时表的数据，覆盖到拉链表中；
+6. 下次抽取需要重建update表和tmp表。
+拉链表: 
+0:维度表,
+1:通过create_time字段= 昨天和 update_time字段 = 昨天,的方式查找出,新的数据和有变化的数据
+2:将以上数据插入和维度表结构相同的 临时表 中
+3:维度表 与 临时表  进行leftjoin, 当ID 相同的时候说明是更新的数据(ID同,为新增数据:不会显示出来)
+重点:维度表中的endtime字段使用if函数判断(临时表的ID为null or 维度表中的endtime时间小于9999-12-31,为维度表的endtime时间,
+若不是说明此数据是更新数据,则使用临时表的starttime - 1 的时间(昨天的时间)为endtimed的时间)
+4:使用 union all 与更新表进行关联
+5:select 这个表,inset overwrite 到当天的分区
+
+

@@ -1,0 +1,33 @@
+version: "3.7"
+services:
+  FlinkJobManager:  # define the job manager service
+    image: flink:1.12.7-scala_2.12-java8
+    container_name: FlinkJobManager
+    hostname: FlinkJobManager
+    expose:
+      - "6123"
+    ports:
+      - "8081:8081"  # map port 8081 of container to port 8081 of localhost 
+    command: jobmanager
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: FlinkJobManager 
+
+  FlinkTaskManager:  # define the task manager service
+    image: flink:1.12.7-scala_2.12-java8
+    #container_name: FlinkTaskManager
+    #    #hostname: FlinkTaskManager
+    expose:
+      - "6121"
+      - "6122"
+    depends_on:
+      - FlinkJobManager  # ensure the sequence of docker composing
+    command: taskmanager
+    links:
+      - "FlinkJobManager:jobmanager"  # link to job manager service
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: FlinkJobManager
+        taskmanager.numberOfTaskSlots: 2

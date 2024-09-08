@@ -1,0 +1,53 @@
+#!/bin/bash
+
+case $1 in
+"start") {
+	for i in sc1 sc2 sc3
+	do
+		echo " ---------- $i ----------"
+		ssh $i "/opt/module/zookeeper-3.5.7/bin/zkServer.sh start"
+	done
+};;
+"stop") {
+	for i in sc1 sc2 sc3
+        do
+		echo " ---------- $i ----------"
+                ssh $i "/opt/module/zookeeper-3.5.7/bin/zkServer.sh stop"
+        done
+};;
+"status") {
+	for i in sc1 sc2 sc3
+        do
+		echo " ---------- $i ----------"
+                ssh $i "/opt/module/zookeeper-3.5.7/bin/zkServer.sh status"
+        done
+};;
+esac
+
+
+#Ansible service 重启 httpd 服务
+ansible -k all -m service -a "name=httpd state=restarted"
+#  Ansible service 重启 network 服务
+ansible -k all -m service -a "name=network args=eth0 state=restarted"
+#Ansible service 开机启动 nfs 服务
+ansible -k all -m service -a "name=nfs enabled=yes runlevel=3,5"
+
+
+#Ansible shell 远程执行脚本
+ansible -k all -m shell -a "/bin/sh /tmp/variables.sh >>/tmp/var.log"
+# Ansible shell 远程执行脚本
+ansible -k all -m shell -a "mkdir -p `date +%F` chdir=/tmp/ state=directory warn=no"
+#Ansible shell 远程查看进程
+ansible -k all -m shell -a "ps -ef |grep http"
+#Ansible shell 远程查看任务计划
+ansible -k all -m shell -a "crontab -l"
+
+#写入远程主机
+ansible 10.10.10.231 -m copy -a 'content="helloword" dest=/home/dcyw/tmp/aaa.txt'
+#执行远程命令
+ansible all -m command -a "df -h"
+#ping 远程主机
+ansible all -m ping
+
+
+nohup ./bin/grafana-server web > ./grafana.log 2>&1 &

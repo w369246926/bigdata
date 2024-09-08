@@ -1,0 +1,11 @@
+双击spoon.bat 启动spoon
+
+如果一闪而过,用notpad++打开Spoon.bat 将内存更改下
+
+只要修改一下[spoon](https://so.csdn.net/so/search?q=spoon&spm=1001.2101.3001.7020).bat里内存配置：
+if "%PENTAHO_DI_JAVA_OPTIONS%"=="" set PENTAHO_DI_JAVA_OPTIONS="-Xms2058m" "-Xmx1024m" "-XX:MaxPermSize=256m"
+
+改为
+if "%PENTAHO_DI_JAVA_OPTIONS%"=="" set PENTAHO_DI_JAVA_OPTIONS="-Xms512m" "-Xmx512m" "-XX:MaxPermSize=256m"
+
+整合hive时候需要将hive目录下conf/hive.set  拷贝到  hadoop/etc/hadoop 目录下

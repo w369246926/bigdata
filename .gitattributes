@@ -1,0 +1,7 @@
+教程/netty/软件/jdk-sourall.zip filter=lfs diff=lfs merge=lfs -text
+教程/netty/软件/JDK/jdk-8u131-windows-i586.exe filter=lfs diff=lfs merge=lfs -text
+教程/netty/软件/JDK/jdk-8u131-windows-x64.exe filter=lfs diff=lfs merge=lfs -text
+教程/netty/软件/ideaIU-2017.2.5.exe filter=lfs diff=lfs merge=lfs -text
+路径/到/大文件 filter=lfs diff=lfs merge=lfs -text
+/346/225/231/347/250/213/netty//350/275/257/344/273/266/jdk-sourall.zip filter=lfs diff=lfs merge=lfs -text
+*.largefile filter=lfs diff=lfs merge=lfs -text

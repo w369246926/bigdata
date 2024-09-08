@@ -1,0 +1,77 @@
+new progect
+左侧选择maven
+右侧勾选Create from archetype
+选择maven-archetype-webapp
+(所属组)Groupid : com.***
+（名称）artifactid：hmmm
+
+导入依赖---刷新依赖
+点击右上角EditConfigurations
+Name:设置名称
+Command line: 添加tomcat插件
+
+导入前端框架到webapp
+运行工程查看情况
+创建 ：dao:数据层
+    ：service：业务层接口  ：impl:业务层接口实现类
+    ：
+
+基于mybats:
+在dao层创建数据库增删改查接口类：
+public interface CompanyDao {
+    int save(Company company);增加
+    int delete(Company company);删除
+    int update(Company company);更改
+    Company findById(String id);查单个
+    List<Company> findAll();}查全部
+
+    添加“核心配置文件”，“映射配置文件”，jdbc.properties到resources
+    核心配置文件--mybatis的主配置文件:sqlmapconfig.xml
+    映射配置文件--代码与数据库表建立映射关系的文件：需要与接口的路径保持统一：com.itheima.***.**Dao.com
+
+    添加工厂类：sqlsesson--执行sql
+    添加工具类：用于处理事务
+
+根据前端页面编写 servlet 类 extens HttpServlet
+    实现父类方法：CTRL +o ,右键单机--generate --overridemethods
+    doget ,dopost
+    类名上加：@WebServlet("/store/company地址")：此类即可通过此地址访问
+    doget方法内的request用于接受前端传过的参数
+    获取相关参数用request。get***获取
+
+    获取参数执行相应增删改查业务
+
+    创建BaseServlet类并继承HttpServlet
+    调用init方法--执行创建service对象
+    然后 servlet类就可以继承 BaseServlet类
+    servlet 类中就不用重复创建service业务层对象了，因为继承了BaseServlet ，BaseServlet继承了HttpServlet
+
+    变更前端list.jsp文件，更改表字段和表的获取名称对应的情况，
+
+    部门表的关系：
+    domain下的实体类增加内连接：（用于多对一的方式进行，所有下属部门关联自己的上级部门，当没有上级部门就是顶级部门）
+
+    上传图片需要注意前端页面的标签:enctype="multipart/form-data"
+    <form id="editForm" action="${ctx}/store/question?operation=edit" method="post" enctype="multipart/form-data">
+    <div class="col-md-2 title">题干图片</div><!--放到题干后面-->
+                                    <div class="col-md-10 data ">
+                                        <input type="file" class="form-control" placeholder="题干图片" name="picture" value="${question.picture}">
+                                    </div>
+
+                                    <div class="col-md-2 title">题干图片</div>
+                                    <div class="col-md-10 data ">
+                                        <img src="${ctx}/upload/${question.picture}"/>
+                                    </div>
+
+    后端进行判断:是否有图片过来然后进行操作
+    报表导出:
+    运用pio的功能创建表,表操作,将表写入流,定义文件名与文件格式,返回给前端
+    用户权限:RBAC实现方式
+
+
+
+
+
+
+
+

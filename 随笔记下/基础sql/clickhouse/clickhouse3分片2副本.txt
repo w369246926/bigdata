@@ -1,0 +1,108 @@
+<?xml version="1.0"?>
+<yandex>
+
+        <remote_servers>
+                <ckcluster>
+                        <shard>
+                                <internal_replication>true</internal_replication>
+                                <replica>
+                                        <host>hadoop101</host>
+                                        <port>19000</port>
+                                        <user>default</user>
+                                        <password>123456</password>
+                                </replica>
+                                <replica>
+                                        <host>hadoop102</host>
+                                        <port>19000</port>
+                                        <user>default</user>
+                                        <password>123456</password>
+                                </replica>
+                        </shard>
+                        <shard>
+                                <internal_replication>true</internal_replication>
+                                <replica>
+                                        <host>hadoop103</host>
+                                        <port>19000</port>
+                                        <user>default</user>
+                                        <password>123456</password>
+                                </replica>
+                                <replica>
+                                        <host>hadoop104</host>
+                                        <port>19000</port>
+                                        <user>default</user>
+                                        <password>123456</password>
+                                </replica>
+                        </shard>
+                        <shard>
+                                <internal_replication>true</internal_replication>
+                                <replica>
+                                        <host>hadoop105</host>
+                                        <port>19000</port>
+                                        <user>default</user>
+                                        <password>123456</password>
+                                </replica>
+                                <replica>
+                                        <host>hadoop106</host>
+                                        <port>19000</port>
+                                        <user>default</user>
+                                        <password>123456</password>
+                                </replica>
+                        </shard>
+                        <shard>
+                                <internal_replication>true</internal_replication>
+                                <replica>
+                                        <host>hadoop107</host>
+                                        <port>19000</port>
+                                        <user>default</user>
+                                        <password>123456</password>
+                                </replica>
+                                <replica>
+                                        <host>hadoop108</host>
+                                        <port>19000</port>
+                                        <user>default</user>
+                                        <password>123456</password>
+                                </replica>
+                        </shard>
+                </ckcluster>
+        </remote_servers>
+
+        <zookeeper-servers>
+                <node index="1">
+                <host>hadoop101</host>
+                <port>2181</port>
+                </node>
+                <node index="2">
+                <host>hadoop102</host>
+                <port>2181</port>
+                </node>
+                <node index="3">
+                <host>hadoop103</host>
+                <port>2181</port>
+                </node>
+                <node index="4">
+                <host>hadoop104</host>
+                <port>2181</port>
+                </node>
+                <node index="5">
+                <host>hadoop105</host>
+                <port>2181</port>
+                </node>
+                <node index="6">
+                <host>hadoop106</host>
+                <port>2181</port>
+                </node>
+                <node index="7">
+                <host>hadoop107</host>
+                <port>2181</port>
+                </node>
+                <node index="8">
+                <host>hadoop108</host>
+                <port>2181</port>
+                </node>
+        </zookeeper-servers>
+
+        <macros>
+        <shard>03</shard> <!--不同机器放的分片第几块不一样-->
+        <replica>rep_3_5</replica> <!--不同机器放的副本数不一样-->
+        </macros>
+</yandex>

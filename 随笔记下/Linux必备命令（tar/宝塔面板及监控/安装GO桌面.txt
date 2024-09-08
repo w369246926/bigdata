@@ -1,0 +1,10 @@
+yum groupinstall "GNOME Desktop" "Graphical Administration Tools" -y
+ln -sf /lib/systemd/system/runlevel5.target /etc/systemd/system/default.target
+
+reboot
+
+使用开源工具 Extundelete 快速恢复被误删除的数据。
+wget https://github.com/curu/extundelete/releases/download/v1.0/extundelete
+chmod a+x extundelete
+恢复数据
+./extundelete  --restore-all  /dev/对应盘

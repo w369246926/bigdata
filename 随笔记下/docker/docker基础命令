@@ -1,0 +1,45 @@
+docker创建网络
+docker network create -d bridge test-net
+docker network ls
+运行一个容器并连接到新建的 test-net
+docker run -itd --name test1 --network test-net ubuntu /bin/bash
+docker run -itd -p 8082:8000 --network updata_fan_net 7f4f9d13edef /bin/bash
+复制到容器中   my_container为容器名称
+docker cp /tmp/local-file.txt my_container:/app
+docker cp bus.sql c195100b5c27:/sql
+从容器复制到宿主机
+docker cp my_container:/app/logs/app.log /tmp/
+制作镜像
+docker commit -m="sqlck" -a="fx" 容器id 目标镜像名:1.1
+
+docker run -itd -p 3313:80 --network updata_fan_net \
+-v /opt/docker/docker0908/updata/frontend/dist/setting.js:/dist/setting.js 83e847e8cc3d /bin/bash
+# 查看***容器的日志
+docker logs --tail=1000 ***
+# 实时查看更新
+docker logs -f ***
+# 日志保存位置
+/var/lib/docker/containers/容器ID/容器ID-json.log
+# 避免Ctrl + c 退出此容器
+docker attach --sign-proxy=false ***
+备份,导入导出
+# 重命名Docker容器的tag名称，***代表现有名字，###代表新名字
+docker tag *** ###
+# 保存***容器到###.tar中，***容器后面可以跟多个容器
+docker save -o ###.tar ***1 ***2
+# 恢复容器
+docker load --input ***.tar  或者  docker load < ***.tar
+
+-i：这是 "interactive" 的缩写，它表示要启动一个交互式容器，允许你与容器进行交互，例如，从终端输入命令。
+-d：这是 "detach" 的缩写，它表示要在后台模式下运行容器，即容器将在后台运行而不会占用你的终端。通常与 -d 一起使用，以便让容器在后台运行。
+-t：这是 "tty" 的缩写，它表示要为容器分配一个伪终端（pseudo-TTY），这通常与 -i 一起使用，以便与容器进行交互。
+
+--name： 用于为容器指定一个名称。docker run --name my-container nginx
+-p 或 --publish： 用于将容器内的端口映射到主机上的端口。 docker run -p 8080:80 nginx
+-v 或 --volume： 用于挂载数据卷，将容器内的目录与主机文件系统目录关联，用于数据持久化。 docker run -v /host/path:/container/path my-app
+-e 或 --env： 用于设置环境变量。 docker run -e MYSQL_ROOT_PASSWORD=my-secret-pw mysql
+--init： 启用容器初始化进程，用于更好地处理信号和进程管理。 docker run --init my-app
+--network： 指定容器连接的网络。 docker run --network=my-network my-app
+--link： 链接容器以便进行通信。 docker run --link=my-db:mysql my-app
+-u 或 --user： 指定容器中运行的用户。 docker run -u 1000 my-app
+--rm： 指定容器退出时自动删除容器。 docker run --rm my-app

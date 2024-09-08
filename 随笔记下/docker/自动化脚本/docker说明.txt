@@ -1,0 +1,6 @@
+镜像中包含: 
+zdfy镜像
+redis
+mysql
+clickhouse
+minio

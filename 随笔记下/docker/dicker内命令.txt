@@ -1,0 +1,10 @@
+更新下载
+apt-get update
+下载ping
+apt-get install iputils-ping
+下载telne
+apt-get install telnet
+下载vim
+apt-get install telnet
+下载yum
+apt-get install yum

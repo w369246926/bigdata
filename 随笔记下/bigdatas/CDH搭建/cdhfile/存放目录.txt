@@ -1,0 +1,6 @@
+CentOS-Base.repo  存放在  /etc/yum.repos.d  直接替换即可
+config.ini    存放在    /etc/cloudera-scm-agent/  直接上传即可
+
+接下来需要先运行安装cloudera环境后再上传
+parcel-repo   存放在    /opt/cloudera
+db.properties   存放在  /etc/cloudera-scm-server

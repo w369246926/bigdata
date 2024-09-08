@@ -1,0 +1,207 @@
+/opt/cloudera/parcels/CDH-5.9.2-1.cdh5.9.2.p0.3/lib/zookeeper/bin/zkServer.sh status
+cdh前置需要:
+请运行“echo never > /sys/kernel/mm/transparent_hugepage/defrag”和“echo never > /sys/kernel/mm/transparent_hugepage/enabled”以禁用此设置
+上传离线组件包并给与权限:
+chmod +x -R parcel-repo/
+设置sysctl.conf
+echo 'vm.swappiness=10'>> /etc/sysctl.conf
+sysctl -p
+时间同步:参考内网时间同步
+systemctl start ntpd
+删除mysql相关
+yum remove mysql-libs
+关闭防火墙:
+systemctl stop firewalld
+或只为了开启ssh链接
+firewall-cmd --permanent --add-service=ssh
+firewall-cmd --reload
+1:登录所有机器配置hosts
+hostnamectl set-hostname hadoop101
+vim /etc/hosts
+172.16.10.161 hadoop101 hadoop101
+172.16.10.162 hadoop102 hadoop102
+172.16.10.163 hadoop103 hadoop103
+172.16.101.24 hadoop104 hadoop104
+172.16.101.27 hadoop105 hadoop105
+172.16.101.31 hadoop106 hadoop106
+172.16.101.46 hadoop107 hadoop107
+172.16.101.47 hadoop108 hadoop108
+一条命令  ： echo -e "192.168.88.128 hadoop101 hadoop101\n192.168.88.129 hadoop102 hadoop102\n192.168.88.130 hadoop103 hadoop103\n192.168.88.131 hadoop104 hadoop104\n192.168.88.132 hadoop105 hadoop105\n192.168.88.133 hadoop106 hadoop106\n192.168.88.134 hadoop107 hadoop107" | sudo tee -a /etc/hosts
+2:配置免密登录
+ssh-keygen -t rsa
+ssh-copy-id hadoop1012345678
+一条命令：
+for i in {101..107}; do ssh-copy-id hadoop$i; done
+
+for i in {101..107}; do
+    sshpass -p 'your_password' ssh-copy-id -o StrictHostKeyChecking=no hadoop$i
+done  未验证
+
+验证是否生效：current_host=$(hostname); for i in {101..107}; do target="hadoop$i"; [ "$current_host" != "$target" ] && ssh -o BatchMode=yes -o ConnectTimeout=5 $target echo "$current_host to $target OK" || echo "$current_host to $target Failed"; done
+
+3:安装jdk
+查看自带JDK
+rpm -qa | grep java
+卸载自带JDK
+一条命令：rpm -qa | grep -i 'java' | xargs -I {} sh -c 'echo "Removing: {}"; rpm -e --nodeps {}'
+rpm -e --nodeps java-1.8.0-openjdk-1.8.0.102-4.b14.el7.x86_64
+rpm -e --nodeps java-1.8.0-openjdk-headless-1.8.0.102-4.b14.el7.x86_64
+rpm -e --nodeps java-1.7.0-openjdk-headless-1.7.0.111-2.6.7.8.el7.x86_64
+rpm -e --nodeps java-1.7.0-openjdk-1.7.0.111-2.6.7.8.el7.x86_64
+
+在hadoop101的/opt目录下创建module和software文件夹
+mkdir -p /opt/module
+mkdir -p /opt/software
+
+
+cloudera官网的rpm 默认安装
+scp -r oracle-j2sdk1.8-1.8.0+update181-1.x86_64.rpm hadoop102:/$PWD
+安装:rpm -ivh oracle-j2sdk1.8-1.8.0+update181-1.x86_64.rpm
+4:配置环境变量
+vim /etc/profile
+
+export JAVA_HOME=/usr/java/jdk1.8.0_181-cloudera
+export CLASSPATH=.:$CLASSPATH:$JAVA_HOME/lib
+export PATH=$PATH:$JAVA_HOME/bin
+
+source /etc/profile
+#分发
+scp -r /usr/java/ hadoop102:/usr/
+5:查看mysql安装情况   有则卸载
+一条命令：rpm -qa | grep -i 'mysql' | xargs -I {} sh -c 'echo "Removing: {}"; rpm -e --nodeps {}'
+rpm -qa|grep -i mysql
+rpm -e --nodeps akonadi-mysql-1.9.2-4.el7.x86_64
+rpm -e --nodeps qt-mysql-4.8.5-13.el7.x86_64
+rpm -e --nodeps perl-DBD-MySQL-4.023-5.el7.x86_64
+rpm -e --nodeps mysql-libs-5.1.73-7.el6.x86_64
+(报错!!!)
+一堆:file /usr/bin/mysql from install of mariadb-1:5.5.41-2.el7_0.x86_64 conflicts with file from package MySQL-client-5.0.96-1.glibc23.x86_64
+yum -y remove mysql-libs*
+yum remove mysql-libs
+内网忽略:
+{
+yum install -y libaio
+yum install -y autoconf
+wget https://downloads.mysql.com/archives/get/p/23/file/MySQL-shared-compat-5.6.24-1.el6.x86_64.rpm
+wget https://downloads.mysql.com/archives/get/p/23/file/MySQL-shared-5.6.24-1.el6.x86_64.rpm
+rpm -ivh MySQL-shared-5.6.24-1.el6.x86_64.rpm
+rpm -ivh MySQL-shared-compat-5.6.24-1.el6.x86_64.rpm
+}
+
+解压mysqllibs
+unzip mysql-libs
+rmp -ivh *.rpm
+查看密码
+cat /root/.mysql_secret
+service mysql start
+mysql登录:
+mysql -uroot -pq3cWLnNBsfrGZmqS
+改密码:SET PASSWORD=PASSWORD('000000');
+改权限:
+use mysql;
+select User, Host, Password from user;
+update user set host='%' where host='localhost';
+delete from user where host!='%';
+flush privileges;
+创建scm用户及权限及数据库
+GRANT ALL ON scm.* TO 'scm'@'%' IDENTIFIED BY 'scm';
+CREATE DATABASE scm DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci;
+#mysql链接
+tar -zxvf mysql-connector-java-5.1.27.tar.gz
+mv mysql-connector-java-5.1.27-bin.jar mysql-connector-java.jar
+mv mysql-connector-java.jar /usr/share/java/
+分发
+scp -r /usr/share/java/ hadoop102345:/usr/share/
+创建cdhrpm包存放目录
+mkdir /opt/cloudera-manager
+tar -zxvf cm6.3.1-redhat7.tar.gz
+cd cm6.3.1/RPMS/x86_64/
+mv cloudera-manager-agent-6.3.1-1466458.el7.x86_64.rpm /opt/cloudera-manager/
+mv cloudera-manager-server-6.3.1-1466458.el7.x86_64.rpm /opt/cloudera-manager/
+mv cloudera-manager-daemons-6.3.1-1466458.el7.x86_64.rpm /opt/cloudera-manager/
+cd /opt/cloudera-manager/   三个包
+
+每台机器分发
+scp - r /opt/cloudera-manager/ hadoop10123:/opt
+
+三个节点安装cloudera-manager-daemons,安装完毕后多出/opt/cloudera目录
+rpm -ivh /opt/cloudera-manager/cloudera-manager-daemons-6.3.1-1466458.el7.x86_64.rpm --nodeps --force
+
+rpm -ivh /opt/cloudera-manager/cloudera-manager-agent-6.3.1-1466458.el7.x86_64.rpm --nodeps --force
+每台机器设置:
+vim /etc/cloudera-scm-agent/config.ini
+server_host=hadoop101
+安装主节点cloudera-scm-server
+rpm -ivh /opt/cloudera-manager/cloudera-manager-server-6.3.1-1466458.el7.x86_64.rpm --nodeps --force
+导入数据到server
+mv /opt/CDH6/CDH-6.3.2-1* /opt/cloudera/parcel-repo
+
+mv /opt/CDH6/manifest.json /opt/cloudera/parcel-repo
+cd /opt/cloudera/parcel-repo
+mv CDH-6.3.2-1.cdh6.3.2.p0.1605554-el7.parcel.sha1 CDH-6.3.2-1.cdh6.3.2.p0.1605554-el7.parcel.sha
+vim /etc/cloudera-scm-server/db.properties
+com.cloudera.cmf.db.type=mysql
+com.cloudera.cmf.db.host=hadoop101:3306
+com.cloudera.cmf.db.name=scm
+com.cloudera.cmf.db.user=scm
+com.cloudera.cmf.db.password=scm
+com.cloudera.cmf.db.setupType=EXTERNAL
+
+/opt/cloudera/cm/schema/scm_prepare_database.sh mysql scm scm
+systemctl start cloudera-scm-server
+tail -f /var/log/cloudera-scm-server/cloudera-scm-server.log
+三台启动:
+systemctl start cloudera-scm-agent
+
+
+zookeeper报错:
+以下网络接口似乎未以全速运行：virbr0-nic。
+2 主机网络接口似乎以全速运行。对于
+2 主机网络接口，Cloudera Manager Agent 无法确定双工模式或接口速度。
+
+解决:
+将每个主机中配置栏搜索"网络接口"  网络接口收集排除正则表达式   ^virbr
+进入各个组件--点击配置--搜索log  :更改日志存储位置(kafka:data)
+二次安装kafka:清空kafka日志及数据,清空zookeeper下的brokers/topics/
+
+第15添加cdh节点
+15.1 更新新节点主机名
+hostnamectl set-hostname hadoop104
+15.2 更新所有机器host文件,添加新节点
+
+时间同步----参考内网时间同步
+同步后重启agent
+
+flink on yarn
+操作步骤:
+打开yarn配置页面（每台hadoop节点都需要修改）
+CDH集群地址:
+/opt/cloudera/parcels/CDH/lib/hadoop-yarn/etc/hadoop
+vim etc/hadoop/yarn-site.xml
+添加
+export HADOOP_CONF_DIR=/opt/cloudera/parcels/CDH/lib/hadoop/etc/hadoop
+<property>
+    <name>yarn.nodemanager.vmem-check-enabled</name>
+    <value>false</value>
+</property>
+是否启动一个线程检查每个任务正使用的虚拟内存量，如果任务超出分配值，则直接将其杀掉，默认是true。
+在这里面我们需要关闭，因为对于flink使用yarn模式下，很容易内存超标，这个时候yarn会自动杀掉job
+
+添加flink-shaded-hadoop-2-uber-3.0.0-cdh6.3.2-10.0.jar包到flink.lib下
+配置文件目录下
+
+关闭HDFS权限：
+dfs.permissions
+
+注意:
+如果使用的是flink on yarn方式，想切换回standalone模式的话，需要删除文件：【/tmp/.yarn-properties-root】
+因为默认查找当前yarn集群中已有的yarn-session信息中的jobmanager
+
+如果是分离模式运行的YARN JOB后，其运行完成会自动删除这个文件
+但是会话模式的话，如果是kill掉任务，其不会执行自动删除这个文件的步骤，所以需要我们手动删除这个文件。
+
+hue 安装后  load balunce 报错原因可能是安装 Apache HTTPD
+which httpd
+sudo yum install httpd
+sudo yum install mod_ssl
+ 重启解决

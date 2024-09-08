@@ -1,0 +1,8 @@
+#!/bin/bash
+
+#删除表
+clickhouse-client --query "drop table bigdata.tmp"
+#睡眠一下
+sleep 60
+#同步表
+clickhouse-client --query "CREATE TABLE bigdata.tmpone ENGINE = MergeTree ORDER BY id AS SELECT * FROM mysql('127.0.0.1:3306','shop_itheima','userone','root','123456');"

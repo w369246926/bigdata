@@ -1,0 +1,62 @@
+docker run -d \
+  --name flink-jobmanager \
+  --network host \
+  flink:latest jobmanager
+
+docker run -d \
+  --name flink-taskmanager \
+  --network host \
+  -e JOB_MANAGER_RPC_ADDRESS=hadoop101 \
+  flink:latest taskmanager
+常用参数和环境变量
+1. Flink 配置参数
+JOB_MANAGER_RPC_ADDRESS: 指定 JobManager 的 RPC 地址，通常是 JobManager 所在主机的 IP 地址或主机名。
+
+TASKMANAGER_NUM_TASK_SLOTS: 设置每个 TaskManager 实例的任务槽数量。
+
+TASKMANAGER_HEAP_MB: 设置 TaskManager 的堆内存大小（单位为 MB）。
+
+TASKMANAGER_MANAGED_MEMORY_SIZE: 设置 TaskManager 的托管内存大小（单位为 MB）。
+
+FLINK_LOG_LEVEL: 设置 Flink 的日志级别（例如 INFO, DEBUG, ERROR）。
+
+2. Docker 参数
+--memory: 设置容器的内存限制。例如 --memory 4g。
+
+--cpus: 设置容器可以使用的 CPU 数量。例如 --cpus 2。
+
+--env: 用于设置环境变量。例如 --env JOB_MANAGER_RPC_ADDRESS=hadoop101。
+
+-v: 用于挂载卷，以便将本地配置文件或数据挂载到容器内。例如 -v /path/to/flink-conf.yaml:/opt/flink/conf/flink-conf.yaml。
+
+--network: 指定 Docker 网络模式。host 模式直接使用主机的网络配置。
+
+-p: 映射主机端口到容器端口。例如 -p 8081:8081
+
+启动 JobManager
+
+docker run -d \
+  --name flink-jobmanager \
+  --network host \
+  --memory 4g \
+  --cpus 2 \
+  --env JOB_MANAGER_RPC_ADDRESS=hadoop101 \
+  --env FLINK_LOG_LEVEL=INFO \
+  flink:latest jobmanager
+启动 TaskManager
+
+docker run -d \
+  --name flink-taskmanager \
+  --network host \
+  --memory 4g \
+  --cpus 2 \
+  --env JOB_MANAGER_RPC_ADDRESS=hadoop101 \
+  --env TASKMANAGER_NUM_TASK_SLOTS=4 \
+  --env TASKMANAGER_HEAP_MB=2048 \
+  flink:latest taskmanager
+高级配置
+FLINK_CONF_DIR: 如果你需要挂载自定义的 Flink 配置文件，可以使用 -v 参数挂载配置目录，并设置 FLINK_CONF_DIR 环境变量指向配置目录。
+
+FLINK_JVM_OPTS: 设置 JVM 选项，例如 -Xmx、-Xms 等。
+
+FLINK_PROPERTIES: 直接在命令行中设置 Flink 的配置属性，格式为 key=value。例如，-e FLINK_PROPERTIES="state.backend=rocksdb"。

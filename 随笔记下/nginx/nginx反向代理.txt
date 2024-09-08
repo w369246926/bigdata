@@ -1,0 +1,97 @@
+
+A : 有网服务器
+B : 无网服务器
+
+可以上网的服务器，yum直接安装即可
+# 添加yum源
+rpm -Uvh http://nginx.org/packages/centos/7/noarch/RPMS/nginx-release-centos-7-0.el7.ngx.noarch.rpm
+# yum安装
+yum -y install nginx
+
+在主机A中添加nginx配置
+$ cd /etc/nginx/conf.d
+$ vim proxy.conf
+
+ server {
+        listen 80;
+        #listen [::]:80;
+        # 注意server_name本文配置的是一个域名
+        server_name mirrors.me.com;
+        index index.html index.htm index.php default.html default.htm default.php;
+        root  /home/wwwroot/html;
+		# 反向代理ubuntu
+        location /ubuntu/ {
+            proxy_pass http://mirrors.aliyun.com/ubuntu/ ;
+        }
+		# 反向代理centos
+        location /centos/ {
+            proxy_pass http://mirrors.aliyun.com/centos/ ;
+        }
+		# 反向代理epel
+        location /epel/ {
+            proxy_pass http://mirrors.aliyun.com/epel/ ;
+        }
+        # 有特殊需求，可以参考上方进行补充
+    }
+
+配置B无网 yum repo源码
+$ cat /etc/yum.repos.d/CentOS-7.repo
+
+[base]
+name=CentOS-$releasever - Base - mirrors.me.com
+failovermethod=priority
+baseurl=http://mirrors.me.com/centos/$releasever/os/$basearch/
+        http://mirrors.me.com/centos/$releasever/os/$basearch/
+#mirrorlist=http://mirrorlist.centos.org/?release=$releasever&arch=$basearch&repo=os
+gpgcheck=1
+gpgkey=http://mirrors.me.com/centos/RPM-GPG-KEY-CentOS-7
+
+#released updates
+[updates]
+name=CentOS-$releasever - Updates - mirrors.me.com
+failovermethod=priority
+baseurl=http://mirrors.me.com/centos/$releasever/updates/$basearch/
+        http://mirrors.me.com/centos/$releasever/updates/$basearch/
+#mirrorlist=http://mirrorlist.centos.org/?release=$releasever&arch=$basearch&repo=updates
+gpgcheck=1
+gpgkey=http://mirrors.me.com/centos/RPM-GPG-KEY-CentOS-7
+
+#additional packages that may be useful
+[extras]
+name=CentOS-$releasever - Extras - mirrors.me.com
+failovermethod=priority
+baseurl=http://mirrors.me.com/centos/$releasever/extras/$basearch/
+        http://mirrors.me.com/centos/$releasever/extras/$basearch/
+#mirrorlist=http://mirrorlist.centos.org/?release=$releasever&arch=$basearch&repo=extras
+gpgcheck=1
+gpgkey=http://mirrors.me.com/centos/RPM-GPG-KEY-CentOS-7
+
+#additional packages that extend functionality of existing packages
+[centosplus]
+name=CentOS-$releasever - Plus - mirrors.me.com
+failovermethod=priority
+baseurl=http://mirrors.me.com/centos/$releasever/centosplus/$basearch/
+        http://mirrors.me.com/centos/$releasever/centosplus/$basearch/
+#mirrorlist=http://mirrorlist.centos.org/?release=$releasever&arch=$basearch&repo=centosplus
+gpgcheck=1
+enabled=0
+gpgkey=http://mirrors.me.com/centos/RPM-GPG-KEY-CentOS-7
+
+#contrib - packages by Centos Users
+[contrib]
+name=CentOS-$releasever - Contrib - mirrors.me.com
+failovermethod=priority
+baseurl=http://mirrors.me.com/centos/$releasever/contrib/$basearch/
+        http://mirrors.me.com/centos/$releasever/contrib/$basearch/
+#mirrorlist=http://mirrorlist.centos.org/?release=$releasever&arch=$basearch&repo=contrib
+gpgcheck=1
+enabled=0
+gpgkey=http://mirrors.me.com/centos/RPM-GPG-KEY-CentOS-7
+
+配置无网服务器的hosts
+192.168.101.120   mirrors.yourdomain.com
+
+测试是否成功
+yum clean all
+yum makecache
+

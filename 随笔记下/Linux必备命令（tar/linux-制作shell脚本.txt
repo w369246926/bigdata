@@ -1,0 +1,30 @@
+vi test.sh
+
+#!/bin/bash
+echo "Hello World !"
+chmod +x ./test.sh  #使脚本具有执行权限
+./test.sh  #执行脚本
+sudo vi /etc/profile
+加入一行
+export PATH=$PATH:.
+保存之后，执行
+source /etc/profile
+#!/bin/bash
+if test -z $1;then
+  newfile="./script_`date +%m%d_%s`"
+else
+  newfile=$1
+fi
+echo $newfile
+if  ! grep "^#!" $newfile &>/dev/null; then
+cat >> $newfile << EOF
+#!/bin/bash
+# Author:
+# Date & Time: `date +"%F %T"`
+#Description:
+EOF
+fi
+vim +5 $newfile
+chmod +x $newfile
+chmod u+x shell
+sudo mv shell /usr/bin/

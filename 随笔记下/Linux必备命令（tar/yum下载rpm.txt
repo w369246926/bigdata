@@ -1,0 +1,23 @@
+https://code84.com/817360.html
+
+1.lsb_release -a 查看系统版本,确定外网版本<=内网版本.
+2.配置chrome yum源,即告诉yum从哪里下载chrome
+vi /ect/yum.repos.d/google-chrome.repo
+[google-chrome]
+name=google-chrome
+baseurl=http://dl.google.com/linux/chrome/rpm/stable/$basearch
+enabled=1
+gpgcheck=1
+gpgkey=https://dl-ssl.google.com/linux/linux_signing_key.pub
+保存
+3.下载yumdownloader,这个工具可以批量下载package所有依赖,即用这个工具下载chrome所有依赖.
+#下载工具
+yum install yum-utils
+
+#根据刚才配置的google repo源,下载google chrome所有依赖到 /root/mypackages 目录会自动创建
+yumdownloader --resolve --destdir /root/mypackages/ google-chrome-stable
+4.将/root/mypackages/  这个目录拷贝到要安装的内网centos上.执行以下命令
+cd  /root/mypackages/
+rpm -Uvh *.rpm --nodeps --force
+5.执行执行如下命令,没报错,恭喜你搞定了,可以直接使用puppeteer
+google-chrome --no-sandbox --headless

@@ -1,0 +1,58 @@
+flume读数据到kafka,flink读kafka数据到hbase步骤
+1：模拟生成数据Java项目：
+D：/develop/test/untitled1/flumeSocket/SendEMMSFlume文件
+16行设置IP及端口
+s.connect(new InetSocketAddress("10.10.41.169", 9998), 2000);
+运行main方法
+
+2打开服务器Flume根目录下配置文件
+/opt/apache-flume-1.8.0-bin/job/tracesource.conf
+输入以下配置
+
+a1.sources  =  r1
+#a1.sinks  =  k1
+a1.channels  =  c1
+
+a1.sources.r1.type  = cn.ac.iie.bigdata.TCPSource
+a1.sources.r1.host  = 10.10.41.169
+a1.sources.r1.port  = 9998
+
+#a1.sources.r1.max-line-length = 40240
+
+#a1.channels.c1.type  =  memory 
+#a1.channels.c1.capacity  =  2000000
+#a1.channels.c1.transactionCapacity  =  200000
+#a1.channels.c1.byteCapcityBufferPercentage = 20
+#a1.channels.c1.byteCapacity = 20000000
+a1.channels.c1.type = org.apache.flume.channel.kafka.KafkaChannel
+a1.channels.c1.kafka.bootstrap.servers = iiebigdata0:6667,iiebigdata1:6667,iienode0:6667
+a1.channels.c1.kafka.topic = t1703
+a1.channels.c1.parseAsFlumeEvent = false
+a1.channels.c1.kafka.producer.max.request.size = 704857600
+#a1.sinks.k1.topic = CSSource2
+#a1.sinks.k1.brokerList = iiebigdata0:6667
+#a1.sinks.k1.kafka.bootstrap.servers = iiebigdata0:6667,iiebigdata1:6667,iiebigdata2:6667
+#a1.sinks.k1.max.message.size= 2000000
+#a1.sinks.k1.type = org.apache.flume.sink.kafka.KafkaSink
+#a1.sinks.k1.kafka.flumeBatchSize = 200
+#a1.sinks.k1.kafka.producer.acks = 1
+#a1.sinks.k1.kafka.producer.linger.ms = 1
+#a1.sinks.k1.kafka.producer.max.request.size = 704857600
+#a1.sinks.k1.kafka.producer.compression.type= gzip
+#a1.sinks.k1.kafka.producer.value.deserializer= org.apache.kafka.common.serialization.ByteBufferDeserializer 
+
+a1.sources.r1.channels  =  c1
+#a1.sinks.k1.channel  =  c1
+保存后运行flume命令
+bin/flume-ng agent --conf conf/ --name a1 --conf-file job/mixData.properties -Dflume.root.logger=INFO,console
+
+bin/flume-ng agent --conf conf/ --name b1 --conf-file job/tracesource.conf -Dflume.root.logger=INFO,console
+
+
+
+查看相关Kafkatopic中的数据
+
+运行flink命令：
+nohup /opt/flink/bin/flink run -class  com.flink.MixDataHbaseES /datax_files/jarfiles/hbasesink1.jar -local_path /datax_files/jsonsjobTmp-e9235ce70cea42cbbbf1d17142ee8a26.properties &
+
+查看hbase页面数据情况

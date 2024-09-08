@@ -1,0 +1,31 @@
+报错:2059 - authentication plugin...错误解决方法
+输入：select host,user,plugin from mysql.user;
+回车，如图所示，可以看到root账户的加密方式是caching_sha2_password；
+更改密码:
+ ALTER USER 'root'@'%' IDENTIFIED BY '123456';
+FLUSH PRIVILEGES;
+ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql-native_password BY '12345678';
+
+更改权限:
+ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '123456';
+create user 'root'@'%' IDENTIFIED WITH mysql_native_password BY '123456';
+
+让字段从101开始
+ALTER TABLE products AUTO_INCREMENT = 101;
+在Mysql中取消外键约束
+SET FOREIGN_KEY_CHECKS=0;
+
+select 查询列表（字段）	第七步
+from 表	第一步
+连接类型 join 表2	第二步
+on 连接条件	第三步
+where 筛选条件	第四步
+group by 分组列表	第五步
+having 分组后的筛选条件	第六步
+order by 排序列表	第八步
+limit 偏移 ，条目数	第九步
+
+	from 后接 WHERE 后接 group by  后接 having 后接 ORDER BY
+	查询表    条件筛选      分组           筛选        排序
+建表前须知:三番式,id(uuid),排序字段,分组字段,函数字段(count.avg.sum...),外键关系,
+

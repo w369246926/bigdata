@@ -1,0 +1,16 @@
+总结一下报错关键字：
+Detaching broken part
+DB::Exception: Suspiciously many (15) broken parts to remove
+DB::ParsingException: Cannot parse input: expected 'columns format version: 1\n' at end of stream
+
+查找官方文档中，在Data Replication说明这里，提到了故障恢复方法：
+
+方法1：在ZooKeeper 中创建节点 /path_to_table/replica_name/flags/force_restore_data，节点值可以是任何内容。
+修改ZK是一个很有风险的操作，所以建议先尝试方法2。
+
+方法2： 运行以下命令：
+
+sudo -u clickhouse touch /var/lib/clickhouse/flags/force_restore_data
+注意这里flage目录可以是你安装时指定的具体clickhouse根目录。然后重启CK服务，CK会从另外一个备份中恢复数据。
+这里是CK自带的故障恢复机制，前提是使用复制表（Replicated开头），本质是告诉CK，强制重建数据。建议使用此方法。
+

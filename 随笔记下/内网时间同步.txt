@@ -1,0 +1,90 @@
+所有机器执行
+yum install ntp ntpdate -y
+systemctl start ntpd
+
+主节点配置:
+vim /etc/ntp.conf
+        # 文件存储NTP时钟漂移的记录，用于调整时间偏移
+        driftfile /var/lib/ntp/drift
+
+        # 默认限制配置
+        # - nomodify: 禁止客户端修改服务器的时间设置
+        # - notrap: 禁止客户端将服务器添加到监控列表中
+        # - nopeer: 禁止客户端与服务器建立对等关系
+        # - noquery: 禁止客户端查询服务器的状态
+        restrict default nomodify notrap nopeer noquery
+
+        # 允许本地回环接口 (127.0.0.1) 进行完全访问
+        # 允许本机与自己进行NTP通信
+        restrict 127.0.0.1
+
+        # 允许本地IPv6回环接口 (::1) 进行完全访问
+        restrict ::1
+
+        # 允许指定的内部网络 (192.168.88.254/24) 进行NTP通信
+        # - nomodify: 禁止这些主机修改服务器设置
+        # - notrap: 禁止这些主机将服务器添加到监控列表中
+        restrict 192.168.88.254 mask 255.255.255.0 nomodify notrap
+
+        # 使用本地时钟作为时间源
+        # 127.127.1.0 表示本地时钟 (local clock) 的IP地址
+        # iburst 选项允许更快速地同步时间
+        server 127.127.1.0 iburst
+
+        # 包含其他NTP加密配置文件
+        # 该文件用于配置NTP的加密密钥和其他安全设置
+        includefile /etc/ntp/crypto/pw
+
+        # 设置NTP使用的密钥文件
+        # 该文件包含加密密钥，用于认证NTP通信
+        keys /etc/ntp/keys
+
+        # 禁用监控功能
+        # 防止服务器接收监控请求以保护隐私和安全
+        disable monitor
+
+systemctl restart ntpd
+
+
+"20240715":以centos7.9 : set nu : 注释掉21-24行后添加
+restrict “主机ip或网关：192.168.88.254” mask 255.255.255.0 nomodify notrap  这行说明了可以接受哪些网址的同步
+server 127.127.1.0 iburst
+includefile /etc/ntp/crypto/pw
+keys /etc/ntp/keys
+这三行是指以本地时间作为参考“内网”
+查看获取时间的服务器
+ntpq -p
+
+[root@localhost opt]# systemctl start ntpd
+[root@localhost opt]# ntpq -p
+     remote           refid      st t when poll reach   delay   offset  jitter
+==============================================================================
+*LOCAL(0)        .LOCL.           5 l    3   64    1    0.000    0.000   0.000
+
+sudo firewall-cmd --add-service=ntp --permanent
+sudo firewall-cmd --reload
+允许外界同步时间的请求通过防火墙  查看结果 ：sudo firewall-cmd --list-all
+
+
+
+次节点配置:
+vim /etc/ntp.conf
+#添加主节点到配置文件即可
+server 192.168.88.128
+一条命令即可
+sudo sed -i '1i\server 192.168.88.128 prefer' /etc/ntp.conf
+
+systemctl restart ntpd
+查看获取时间的服务器
+ntpq -p
+date
+
+
+联网状态：
+yum install ntp
+
+chkconfig ntpd on
+
+systemctl start ntpd
+
+ntpdate -u 0.cn.pool.ntp.org

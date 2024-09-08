@@ -1,0 +1,8 @@
+
+/include_from
+
+引入外部文件
+        <zookeeper incl="zookeeper-servers" optional="true" />
+        <include_from>/etc/clickhouse-server/config.d/metrika.xml</include_from>
+cd config.d
+       vim metrika.xml

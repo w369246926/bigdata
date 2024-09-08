@@ -1,0 +1,247 @@
+192.168.88.161
+192.168.88.162
+192.168.88.163
+
+root
+123456
+
+mysql
+账号root
+密码123456
+查看服务器空间
+df -h
+查看当前文件大小(M)
+ll -h
+清空文件内容
+> 文件名
+查看当前目录空间使用
+du -h -x --max-depth=1
+
+查看已删除且占用
+lsof |grep deleted
+
+查看端口占用
+netstat -apn | grep 218
+chown -R clickhouse:clickhouse /etc/clickhouse-client
+
+//添加软连接
+在当前目录添加  '         为此路经或文件                   '    创建软连接位置或名称
+ln -s /export/server/mysql/support-files/mysql.server /etc/init.d/mysql
+
+压缩和解压缩
+tar -zcvf mingcheng.tar.gz duixiangbenshen
+tar -zxvf mingcheng.tar.gz
+
+#关闭防火墙
+systemctl stop firewalld.service
+
+#开机不启动防火墙
+systemctl disable firewalld.service
+
+开启指定端口:
+firewall-cmd --zone=public --add-port=2181/tcp --permanent
+firewall-cmd --zone=public --add-port=2888/tcp --permanent
+firewall-cmd --zone=public --add-port=3888/tcp --permanent
+
+实时日志：tail -f XXX.log
+
+列出所有安装的内容
+ rpm -qa |grep java
+机器之间复制目录
+scp -r hadoop-2.7.5 node02:$PWD
+
+下载上传插件
+yum -y install lrzsz
+
+启动MySQL命令：
+/etc/init.d/mysql start
+//重启mysql服务
+service mysql restart
+set password for root@localhost = password('123456');
+
+启动zookeeper命令：
+/export/server/zookeeper-3.4.6/bin/zkServer.sh start
+jps命令显示 QuorumPeerMain进程
+
+启动Hadoop命令：
+
+需要source hadoop-env.sh
+
+cd /export/server/hadoop-2.7.5/  进入Hadoop目录
+bin/hdfs namenode -format  首次运行的格式化
+sbin/start-dfs.sh  启动hdfs
+sbin/start-yarn.sh  启动yarn
+sbin/mr-jobhistory-daemon.sh start historyserver  历史job任务
+三个端口查看界面
+http://192.168.88.163:50070/explorer.html#/ 查看hdfs
+http://192.168.88.163:8088/cluster 查看yarn集群
+http://192.168.88.163:19888/jobhistory 查看历史完成的Job任务
+
+kafka启动命令
+前台启动：cd /export/servers/kafka_2.11-0.10.0.0
+bin/kafka-server-start.sh config/server.properties
+
+后台启动：cd /export/servers/kafka_2.11-0.10.0.0
+nohup bin/kafka-server-start.sh config/server.properties 2>&1 &
+
+停止命令：cd /export/servers/kafka_2.11-0.10.0.0
+bin/kafka-server-stop.sh
+
+jps命令查看kafka是否启动进程
+
+查看topic
+bin/kafka-topics.sh --zookeeper node1:2181 --list
+bin/kafka-topics.sh --zookeeper localhost:2181 --list
+
+创建topic
+bin/kafka-topics.sh --create --partitions 3 --replication-factor 2 --topic t1 --zookeeper node1:2181,node2:2181,node3:2181
+bin/kafka-topics.sh --create --partitions 1 --replication-factor 1 --topic testone --zookeeper node1:2181
+
+
+删除topic：
+./bin/kafka-topics.sh  --delete --zookeeper node1:2181  --topic vehicledata-dev
+bin/zkCli.sh -server node01:2181
+rmr /brokers/topics/vehicledata-dev
+
+生产数据：
+bin/kafka-console-producer.sh --broker-list localhost:9092 --topic t1
+./bin/kafka-console-producer.sh --broker-list localhost:9092 --topic order
+
+./bin/kafka-console-producer.sh --broker-list localhost:9092,192.168.88.162:9092,192.168.88.163:9092 --topic order
+
+消费数据：
+bin/kafka-console-consumer.sh --zookeeper node01:2181 --from-beginning --topic t1
+bin/kafka-console-consumer.sh --zookeeper localhost:2181 --from-beginning --topic t1
+nohup bin/kafka-console-consumer.sh --zookeeper iienode3:2181 --from-beginning --topic  datalog 2>&1 &
+bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic t1 --from-beginning
+
+计算吞吐量需求：
+吞吐量需求 = 1,000 消息/秒
+计算分区数：
+通常情况下，每个分区应该能够处理你的吞吐量需求。所以，分区数 = 1,000 消息/秒。
+计算副本数：
+为了高可用性，你可以选择每个分区有3个副本（包括1个Leader和2个Follower）。
+计算存储容量：
+存储容量 = 吞吐量需求 x 消息大小 x 保留天数
+存储容量 = 1,000 消息/秒 x 1KB x 86,400 秒/天 x 7 天 = 6,048,000 KB = 5.76 GB
+考虑硬件性能：
+根据存储容量和吞吐量需求来选择硬件，确保具备足够的CPU和内存资源。
+监控调整：
+在生产环境中，使用监控工具来跟踪性能指标，并根据实际负载进行调整。
+
+flume启动命令
+nohup bin/flume-ng agent -c ./conf -f ./conf/udp-kafka.conf -n a1 -Dflume.root.logger=INFO,console 2>&1 &
+
+nohup bin/flume-ng agent -c conf -f conf/f2kdup.conf -n a1  -Dflume.root.logger=INFO,console 2>&1 &
+nohup bin/flume-ng agent -c conf -f conf/f2kdup.conf -n b1  -Dflume.root.logger=INFO,console 2>&1 &
+bin/flume-ng agent --conf conf/ --name a1 --conf-file /conf/mixData.properties -Dflume.root.logger=INFO,console
+
+nohup bin/flume-ng agent -c conf -f conf/flume-syslog.conf -n a1  -Dflume.root.logger=INFO,console 2>&1 &
+bin/flume-ng agent -c conf -f conf/flume-syslogtow.conf -n a1  -Dflume.root.logger=INFO,console
+
+nohup bin/flume-ng agent -c conf -f jobs/da_warning.conf -n a1  -Dflume.root.logger=INFO,console 2>&1 &
+
+hive启动
+第一种:bin/hive
+/export/server/hive-2.1.0/bin/hive
+
+第二种:Beeline Client
+首先启动metastore服务
+    nohup /export/server/hive-2.1.0/bin/hive --service metastore &
+然后启动hiveserver2服务
+nohup /export/server/hive-2.1.0/bin/hive --service hiveserver2 &
+启动beeline
+/export/server/hive-2.1.0/bin/beeline
+
+beeline> !connect jdbc:hive2://node3:10000
+Connecting to jdbc:hive2://node3:10000
+Enter username for jdbc:hive2://node3:10000: root
+Enter password for jdbc:hive2://node3:10000:123456
+退出beeline
+!exit
+
+启动impala
+主节点 node-3 启动以下三个服务进程
+service impala-state-store start
+service impala-catalog start
+service impala-server start
+从节点启动 node-1 与 node-2 启动 impala-server
+service impala-server start
+查看 impala 进程是否存在
+ps -ef | grep impala
+
+进入impala命令
+impala shell
+
+
+sqoop启动
+bin/sqoop list-databases \
+--connect jdbc:mysql://localhost:3306/ \
+--username root --password hadoop 此命令会展示MySQL数据库信息
+
+
+sqoop创建job工作任务
+
+bin/sqoop job --create itcastjob5 -- import --connect jdbc:mysql://192.168.88.161:3306/userdb \
+--username root \
+--password-file /input/sqoop/pwd/itcastmysql.pwd \
+--target-dir /sqoopresult666 \
+--table emp --m 1
+
+
+sqoop job -exec itcastjob5
+
+删除hdfs文件
+
+hadoop fs -rm /input/sqoop/pwd/itcastmysql.pwd
+
+
+
+
+
+阿兹卡班启动命令
+
+cd azkaban-solo-server-0.1.0-SNAPSHOT/     目录下
+bin/start-solo.sh    执行命令
+
+web页面：IP地址：8081
+
+Oozie启动命令
+
+cd /export/servers/oozie-4.1.0-cdh5.14.0
+bin/oozied.sh start 
+关闭命令
+bin/oozied.sh stop
+
+http://node-1:11000/oozie/
+
+启动 hue 进程
+cd /export/servers/hue-3.9.0-cdh5.14.0
+build/env/bin/supervisor
+页面访问 hue
+http://node-1:8888
+
+启动redis
+src/redis-server redis.conf    启动服务
+src/redis-cli -h 192.168.88.161
+
+HBase集群启动
+第一台机器执行以下命令进行启动
+cd /export/server/hbase-2.0.0
+bin/start-hbase.sh
+
+启动HMaster命令
+bin/hbase-daemon.sh start master
+启动HRegionServer命令
+bin/hbase-daemon.sh start regionserver
+浏览器页面访问
+http://node01:16010/master-status
+
+node01服务器执行以下命令进入hbase的shell客户端
+cd /export/servers/hbase-2.0.0
+bin/hbase shell
+
+
+
+
+

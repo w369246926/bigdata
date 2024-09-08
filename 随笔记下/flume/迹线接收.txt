@@ -1,0 +1,158 @@
+tier1.sources  =  r1
+tier1.channels  = trace-channel warning-channel AudioDemode-channel SingalList-channel emmsAV-channel variousData-channel
+tier1.sinks = trace-sink warning-sink AudioDemode-sink SingalList-sink emmsAV-sink variousData-sink
+
+
+tier1.sources.r1.type  =  cn.ac.iie.dcNew.TCPSource
+tier1.sources.r1.host  = hadoop104
+tier1.sources.r1.port  = 29998
+tier1.sources.r1.max-line-length = 10240
+
+
+# selector
+tier1.sources.r1.selector.type = multiplexing
+tier1.sources.r1.selector.header = topic
+tier1.sources.r1.selector.mapping.trace = trace-channel
+tier1.sources.r1.selector.mapping.warning = warning-channel
+tier1.sources.r1.selector.mapping.AudioDemode = AudioDemode-channel
+tier1.sources.r1.selector.mapping.SingalList = SingalList-channel
+tier1.sources.r1.selector.mapping.emmsAV = emmsAV-channel
+tier1.sources.r1.selector.mapping.variousData = variousData-channel
+
+#channels
+#trace channel
+#tier1.channels.trace-channel.type = org.apache.flume.channel.kafka.KafkaChannel
+#tier1.channels.trace-channel.kafka.bootstrap.servers = hadoop104:9092,hadoop105:9092,hadoop106:9092
+#tier1.channels.trace-channel.kafka.topic = trace
+#tier1.channels.trace-channel.parseAsFlumeEvent = false
+#tier1.channels.trace-channel.kafka.producer.max.request.size = 704857600
+tier1.channels.trace-channel.type=memory  
+tier1.channels.trace-channel.capacity=300000
+tier1.channels.trace-channel.transactionCapacity=3000
+
+
+#warning channel
+#tier1.channels.warning-channel.type = org.apache.flume.channel.kafka.KafkaChannel
+#tier1.channels.warning-channel.kafka.bootstrap.servers = hadoop104:9092,hadoop105:9092,hadoop106:9092
+#tier1.channels.warning-channel.kafka.topic = warning
+#tier1.channels.warning-channel.parseAsFlumeEvent = false
+#tier1.channels.warning-channel.kafka.producer.max.request.size = 704857600
+tier1.channels.warning-channel.type=memory  
+tier1.channels.warning-channel.capacity=30000  
+tier1.channels.warning-channel.transactionCapacity=3000
+
+#AudioDemode channel
+#tier1.channels.AudioDemode-channel.type = org.apache.flume.channel.kafka.KafkaChannel
+#tier1.channels.AudioDemode-channel.kafka.bootstrap.servers = hadoop104:9092,hadoop105:9092,hadoop106:9092
+#tier1.channels.AudioDemode-channel.kafka.topic = AudioDemode
+#tier1.channels.AudioDemode-channel.parseAsFlumeEvent = false
+#tier1.channels.AudioDemode-channel.kafka.producer.max.request.size = 704857600
+tier1.channels.AudioDemode-channel.type=memory  
+tier1.channels.AudioDemode-channel.capacity=30000
+tier1.channels.AudioDemode-channel.transactionCapacity=3000
+
+#SingalList channel
+#tier1.channels.SingalList-channel.type = org.apache.flume.channel.kafka.KafkaChannel
+#tier1.channels.SingalList-channel.kafka.bootstrap.servers = hadoop104:9092,hadoop105:9092,hadoop106:9092
+#tier1.channels.SingalList-channel.kafka.topic = SingalList
+#tier1.channels.SingalList-channel.parseAsFlumeEvent = false
+#tier1.channels.SingalList-channel.kafka.producer.max.request.size = 704857600
+tier1.channels.SingalList-channel.type=memory  
+tier1.channels.SingalList-channel.capacity=30000  
+tier1.channels.SingalList-channel.transactionCapacity= 3000
+
+#emmsAV channel
+#tier1.channels.emmsAV-channel.type = org.apache.flume.channel.kafka.KafkaChannel
+#tier1.channels.emmsAV-channel.kafka.bootstrap.servers = hadoop104:9092,hadoop105:9092,hadoop106:9092
+#tier1.channels.emmsAV-channel.kafka.topic = emmsAV
+#tier1.channels.emmsAV-channel.parseAsFlumeEvent = false
+#tier1.channels.emmsAV-channel.kafka.producer.max.request.size = 704857600
+tier1.channels.emmsAV-channel.type=memory  
+tier1.channels.emmsAV-channel.capacity=30000 
+tier1.channels.emmsAV-channel.transactionCapacity=1000  
+
+#variousData channel
+tier1.channels.variousData-channel.type=memory  
+tier1.channels.variousData-channel.capacity=30000 
+tier1.channels.variousData-channel.transactionCapacity=1000 
+
+
+#sinks
+# trace-sink
+tier1.sinks.trace-sink.type = org.apache.flume.sink.kafka.KafkaSink
+tier1.sinks.trace-sink.topic = trace
+tier1.sinks.trace-sink.kafka.bootstrap.servers = hadoop104:9092,hadoop105:9092,hadoop106:9092
+tier1.sinks.trace-sink.max.message.size= 20000000
+tier1.sinks.trace-sink.kafka.flumeBatchSize = 200
+tier1.sinks.trace-sink.kafka.producer.acks = 1
+tier1.sinks.trace-sink.kafka.producer.linger.ms = 1
+tier1.sinks.trace-sink.kafka.producer.max.request.size = 704857600
+tier1.sinks.trace-sink.kafka.producer.value.deserializer= org.apache.kafka.common.serialization.ByteBufferDeserializer 
+ 
+#warning-sink
+tier1.sinks.warning-sink.type = org.apache.flume.sink.kafka.KafkaSink
+tier1.sinks.warning-sink.topic = warning
+tier1.sinks.warning-sink.kafka.bootstrap.servers = hadoop104:9092,hadoop105:9092,hadoop106:9092
+tier1.sinks.warning-sink.max.message.size= 20000000
+tier1.sinks.warning-sink.kafka.flumeBatchSize = 200
+tier1.sinks.warning-sink.kafka.producer.acks = 1
+tier1.sinks.warning-sink.kafka.producer.linger.ms = 1
+tier1.sinks.warning-sink.kafka.producer.max.request.size = 704857600
+tier1.sinks.warning-sink.kafka.producer.value.deserializer= org.apache.kafka.common.serialization.ByteBufferDeserializer 
+  
+#AudioDemode-sink
+tier1.sinks.AudioDemode-sink.type = org.apache.flume.sink.kafka.KafkaSink
+tier1.sinks.AudioDemode-sink.topic = AudioDemode
+tier1.sinks.AudioDemode-sink.kafka.bootstrap.servers = hadoop104:9092,hadoop105:9092,hadoop106:9092
+tier1.sinks.AudioDemode-sink.max.message.size= 20000000
+tier1.sinks.AudioDemode-sink.kafka.flumeBatchSize = 200
+tier1.sinks.AudioDemode-sink.kafka.producer.acks = 1
+tier1.sinks.AudioDemode-sink.kafka.producer.linger.ms = 1
+tier1.sinks.AudioDemode-sink.kafka.producer.max.request.size = 704857600
+tier1.sinks.AudioDemode-sink.kafka.producer.value.deserializer= org.apache.kafka.common.serialization.ByteBufferDeserializer 
+  
+#SingalList-sink
+tier1.sinks.SingalList-sink.type = org.apache.flume.sink.kafka.KafkaSink
+tier1.sinks.SingalList-sink.topic = SingalList
+tier1.sinks.SingalList-sink.kafka.bootstrap.servers = hadoop104:9092,hadoop105:9092,hadoop106:9092
+tier1.sinks.SingalList-sink.max.message.size= 20000000
+tier1.sinks.SingalList-sink.kafka.flumeBatchSize = 200
+tier1.sinks.SingalList-sink.kafka.producer.acks = 1
+tier1.sinks.SingalList-sink.kafka.producer.linger.ms = 1
+tier1.sinks.SingalList-sink.kafka.producer.max.request.size = 704857600
+tier1.sinks.SingalList-sink.kafka.producer.value.deserializer= org.apache.kafka.common.serialization.ByteBufferDeserializer 
+ 
+#emmsAV-sink
+tier1.sinks.emmsAV-sink.type = org.apache.flume.sink.kafka.KafkaSink
+tier1.sinks.emmsAV-sink.topic = emmsAV
+tier1.sinks.emmsAV-sink.kafka.bootstrap.servers = hadoop104:9092,hadoop105:9092,hadoop106:9092
+tier1.sinks.emmsAV-sink.max.message.size= 20000000
+tier1.sinks.emmsAV-sink.kafka.flumeBatchSize = 200
+tier1.sinks.emmsAV-sink.kafka.producer.acks = 1
+tier1.sinks.emmsAV-sink.kafka.producer.linger.ms = 1
+tier1.sinks.emmsAV-sink.kafka.producer.max.request.size = 704857600
+tier1.sinks.emmsAV-sink.kafka.producer.value.deserializer= org.apache.kafka.common.serialization.ByteBufferDeserializer 
+
+#variousData-sink
+tier1.sinks.variousData-sink.type = org.apache.flume.sink.kafka.KafkaSink
+tier1.sinks.variousData-sink.topic = variousData
+tier1.sinks.variousData-sink.kafka.bootstrap.servers = hadoop104:9092,hadoop105:9092,hadoop106:9092
+tier1.sinks.variousData-sink.max.message.size= 20000000
+tier1.sinks.variousData-sink.kafka.flumeBatchSize = 200
+tier1.sinks.variousData-sink.kafka.producer.acks = 1
+tier1.sinks.variousData-sink.kafka.producer.linger.ms = 1
+tier1.sinks.variousData-sink.kafka.producer.max.request.size = 704857600
+tier1.sinks.variousData-sink.kafka.producer.value.deserializer= org.apache.kafka.common.serialization.ByteBufferDeserializer 
+
+
+tier1.sources.r1.channels  = trace-channel warning-channel AudioDemode-channel SingalList-channel emmsAV-channel variousData-channel
+tier1.sinks.trace-sink.channel = trace-channel
+tier1.sinks.warning-sink.channel = warning-channel
+tier1.sinks.AudioDemode-sink.channel = AudioDemode-channel
+tier1.sinks.SingalList-sink.channel = SingalList-channel
+tier1.sinks.emmsAV-sink.channel = emmsAV-channel
+tier1.sinks.variousData-sink.channel = variousData-channel
+
+tier2.sources = r1
+tier2.sinks = k1
+tier2.channels = c1

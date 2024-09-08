@@ -1,0 +1,110 @@
+数据模型的选择建议
+因为数据模型在建表时就已经确定，且无法修改。所以，选择一个合适的数据模型非常
+重要。
+（1）Aggregate 模型可以通过预聚合，极大地降低聚合查询时所需扫描的数据量和查询
+的计算量，非常适合有固定模式的报表类查询场景。但是该模型对 count(*) 查询很不友好。
+同时因为固定了 Value 列上的聚合方式，在进行其他类型的聚合查询时，需要考虑语意正确
+性。
+（2）Uniq 模型针对需要唯一主键约束的场景，可以保证主键唯一性约束。但是无法利
+用 ROLLUP 等预聚合带来的查询优势（因为本质是 REPLACE，没有 SUM 这种聚合方式）。
+（3）Duplicate 适合任意维度的 Ad-hoc 查询。虽然同样无法利用预聚合的特性，但是不
+受聚合模型的约束，可以发挥列存模型的优势（只读取相关列，而不需要读取所有 Key 列）
+
+
+
+建表语句
+CREATE TABLE IF NOT EXISTS example_db.expamle_range_tbl
+(
+ `user_id` LARGEINT NOT NULL COMMENT "用户 id",
+ `date` DATE NOT NULL COMMENT "数据灌入日期时间",
+ `timestamp` DATETIME NOT NULL COMMENT "数据灌入的时间戳",
+ `city` VARCHAR(20) COMMENT "用户所在城市",
+ `age` SMALLINT COMMENT "用户年龄",
+ `sex` TINYINT COMMENT "用户性别",    --以上字段为KEY
+ `last_visit_date` DATETIME REPLACE DEFAULT "1970-01-01 00:00:00" COMMENT "用户最后一次访问时间",  --最新函数
+ `cost` BIGINT SUM DEFAULT "0" COMMENT "用户总消费",    -- 求和函数
+ `max_dwell_time` INT MAX DEFAULT "0" COMMENT "用户最大停留时间",  --最大函数
+ `min_dwell_time` INT MIN DEFAULT "99999" COMMENT "用户最小停留时间"  --最小函数  --以上字段为valus
+ )
+ ENGINE=olap --默认引擎
+ AGGREGATE KEY(`user_id`, `date`, `timestamp`, `city`, `age`, `sex`) --指定KEY列
+ PARTITION BY RANGE(`date`)  --分区字段
+ (
+  PARTITION `p201701` VALUES LESS THAN ("2017-02-01"),  --分区范围左毕右开
+  PARTITION `p201702` VALUES LESS THAN ("2017-03-01"),
+  PARTITION `p201703` VALUES LESS THAN ("2017-04-01")
+ )
+ DISTRIBUTED BY HASH(`user_id`) BUCKETS 16  --粪桶策略 对字段进行hash,共分16个桶
+ PROPERTIES  --配置
+ (
+  "replication_num" = "3",  --副本数
+  "storage_medium" = "SSD", --存储介质
+  "storage_cooldown_time" = "2018-01-01 12:00:00"  --数据迁移
+ );
+如果没有指定 storage_cooldown_time，则默认 30 天后，数据会从 SSD 自动迁移到 HDD
+上。如果指定了 storage_cooldown_time，则在到达 storage_cooldown_time 时间后，数据才会
+迁移。
+
+CREATE TABLE IF NOT EXISTS example_db.expamle_list_tbl
+(
+ `user_id` LARGEINT NOT NULL COMMENT "用户 id",
+ `date` DATE NOT NULL COMMENT "数据灌入日期时间",
+ `timestamp` DATETIME NOT NULL COMMENT "数据灌入的时间戳",
+ `city` VARCHAR(20) COMMENT "用户所在城市",
+ `age` SMALLINT COMMENT "用户年龄",
+ `sex` TINYINT COMMENT "用户性别",
+ `last_visit_date` DATETIME REPLACE DEFAULT "1970-01-01
+00:00:00" COMMENT "用户最后一次访问时间",
+ `cost` BIGINT SUM DEFAULT "0" COMMENT "用户总消费",
+ `max_dwell_time` INT MAX DEFAULT "0" COMMENT "用户最大停留时间",
+ `min_dwell_time` INT MIN DEFAULT "99999" COMMENT "用户最小停留时
+间"
+)
+ENGINE=olap
+AGGREGATE KEY(`user_id`, `date`, `timestamp`, `city`, `age`, `sex`)
+PARTITION BY LIST(`city`)  --分区字段
+(
+ PARTITION `p_cn` VALUES IN ("Beijing", "Shanghai", "Hong Kong"),
+ PARTITION `p_usa` VALUES IN ("New York", "San Francisco"),
+ PARTITION `p_jp` VALUES IN ("Tokyo")
+)
+DISTRIBUTED BY HASH(`user_id`) BUCKETS 16
+PROPERTIES
+(
+ "replication_num" = "3",
+ "storage_medium" = "SSD",
+ "storage_cooldown_time" = "2018-01-01 12:00:00"
+);
+
+
+kafka  ROUTINE LOAD
+
+建表：
+CREATE TABLE student_kafka
+(
+id INT,
+NAME VARCHAR(50),
+age INT
+)
+DUPLICATE KEY(id)
+DISTRIBUTED BY HASH(id) BUCKETS 10;
+
+建读kafka任务：
+CREATE ROUTINE LOAD testdb.kafka_test ON student_kafka
+COLUMNS TERMINATED BY ",",
+COLUMNS(id, NAME, age)
+PROPERTIES
+(
+"desired_concurrent_number"="3",
+"strict_mode" = "false"
+)
+FROM KAFKA
+(
+ "kafka_broker_list"= "node1:9092,node2:9092,node3:9092",
+ "kafka_topic" = "test_doris1",
+ "property.group.id"="test_doris_group",
+ "property.kafka_default_offsets" = "OFFSET_BEGINNING",
+ "property.enable.auto.commit"="false"
+);
+
+

@@ -1,0 +1,16 @@
+#启动服务端
+ ./frps -c frps.ini &
+#启动客户端
+ ./frpc -c frpc.ini &
+#关闭进程
+# ps -aux | grep frps
+root     11565  0.0  0.3  23540  6916 ?        Sl    2018   6:43 ./frps -c frps.ini
+# kill -9 11565
+
+# ps -aux | grep frpc
+root       6171  0.0  0.2 112704   972 pts/0    R+   13:58   0:00 grep --color=auto frpc
+# kill -9 6171
+
+frp映射不同局域网内的主机
+这里只做提示，有时间详细说明。
+tips:在云服务器端复制frps.ini为frps_1.ini、frps_2.ini，将其中bind_port值改为不同，分别启动

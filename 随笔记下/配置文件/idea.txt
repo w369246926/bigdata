@@ -1,0 +1,6 @@
+Error running 未命名. Command line is too long. Shorten the command line via JAR manifest or via a clas
+idea运行 Application 时出错。命令行过长。 通过 JAR 清单或通过类路径文件缩短命令
+
+1.修改项目下 .idea\workspace.xml
+2.找到标签 <component name="PropertiesComponent">
+在下面一行加上：<property name="dynamic.classpath" value="true" />

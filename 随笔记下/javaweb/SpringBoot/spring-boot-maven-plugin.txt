@@ -1,0 +1,51 @@
+我们都知道在使用 springboot 开发项目的时候，都会使用的时候 spring-boot-maven-plugin 这个插件，然而这个插件并没有详细研究过；这个插件可用于简单的 JAR/WAR 方式打包，官方地址为
+
+版权声明：本文为CSDN博主「一个写bug的程序员」的原创文章，遵循CC 4.0 BY-SA版权协议，转载请附上原文出处链接及本声明。
+原文链接：https://blog.csdn.net/qq_35530330/article/details/129879364
+<plugins>
+    <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+        <!-- 当使用springboot构建服务，则该配置可省略 -->
+    	<version>2.1.4.RELEASE</version>
+    </plugin>
+</plugins>
+
+当执行 mvn clean package 命令的时候，其会默认执行该插件的 repackage 任务；其会在 target 目录下生成以下两个文件：
+demo-springboot-web-0.0.1-SNAPSHOT.jar
+demo-springboot-web-0.0.1-SNAPSHOT.jar.original
+
+demo-springboot-web-0.0.1-SNAPSHOT.jar/
+	BOOT-INF/
+		classes/
+		lib/
+	META-INF/
+		maven/
+		MANIFEST.MF
+	org/
+
+由上面这个目录可知，我们的源码被打到了 /BOOT-INF/classes 目录中，而锁需要的依赖，则打入 /BOOT-INF/lib 目录
+上面这个 jar 包中，/META-INF/MANIFEST.MF 文件执行了 Main-Class 是由 spring-boot 官方编写的 org.springframework.boot.loader.JarLauncher 类来进行启动；而我们真正的启动类则是由 Start-Class 属性来进行定义。而用于层的调用则直接使用 java -jar demo-springboot-web-0.0.1-SNAPSHOT.jar 即可
+————————————————
+我们也可以自己指定所需要的启动类，如下配置：
+
+<plugins>
+    <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+        <configuration>
+        	<archive>
+            	<manifest>
+                	<mainClass>xxx.xxx.xxx.XxxApplication</mainClass>
+            	</manifest>
+        	</archive>
+    	</configuration>
+    </plugin>
+</plugins>
+参考：https://www.cnblogs.com/kingsonfu/p/11805455.html
+https://blog.csdn.net/u014163312/article/details/127330574
+https://blog.csdn.net/qq_35530330/article/details/129879364
+
+
+
+

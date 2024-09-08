@@ -1,0 +1,64 @@
+https://blog.csdn.net/weixin_42130167/article/details/126028276?ops_request_misc=&request_id=&biz_id=102&utm_term=datax%20clickhousereader%E6%8F%92%E4%BB%B6&utm_medium=distribute.pc_search_result.none-task-blog-2~all~sobaiduweb~default-0-126028276.142^v73^insert_down3,201^v4^add_ask,239^v2^insert_chatgpt&spm=1018.2226.3001.4187
+
+背景：想要把click house的数据源同步到HDFS，发现Datax没有clickhousereader组件。
+
+1、把clickhousewriter/libs下的所有jar包复制到rdbmsreader/libs下,同名jar包直接替换，另外，删掉rm -f guava-r05.jar这个包，否则会报错
+cp 自己的Datax安装目录/datax/plugin/writer/clickhousewriter/libs/* 自己的Datax安装目录/datax/plugin/reader/rdbmsreader/libs/
+ 2、修改plugin.json文件：在"driver" 增加 "ru.yandex.clickhouse.ClickHouseDriver"
+
+[root@*** plugin]# cat reader/rdbmsreader/plugin.json
+{
+    "name": "rdbmsreader",
+    "class": "com.alibaba.datax.plugin.reader.rdbmsreader.RdbmsReader",
+    "description": "useScene: prod. mechanism: Jdbc connection using the database, execute select sql, retrieve data from the ResultSet. warn: The more you know about the database, the less problems you encounter.",
+    "developer": "alibaba",
+    "drivers":["dm.jdbc.driver.DmDriver", "com.sybase.jdbc3.jdbc.SybDriver", "com.edb.Driver", "ru.yandex.clickhouse.ClickHouseDriver"]
+}
+
+3、编辑json文件
+
+{
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "parameter": {
+            "password": "password",
+            "column": [
+              "id",
+              "state",
+              "time"
+            ],
+            "connection": [
+              {
+                "jdbcUrl": [
+                  "jdbc:clickhouse://ip:port/default"
+                ],
+                "table": [
+                  "table_name"
+                ]
+              }
+            ],
+            "username": "username"
+          },
+          "name": "rdbmsreader"
+        },
+          "writer": {
+               "name": "streamwriter",
+               "parameter": {
+                    "print":true
+                }
+           }
+        }
+    ],
+    "setting": {
+      "errorLimit": {
+        "record": 0,
+        "percentage": 0.02
+      },
+      "speed": {
+        "channel": 3
+      }
+    }
+  }
+}

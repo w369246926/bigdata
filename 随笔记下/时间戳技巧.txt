@@ -1,0 +1,67 @@
+请使用System.currentTimeMillis()代替new Date().getTime()
+
+package com.alibaba.newcpw.sdksearch.utils;
+ 
+import com.alibaba.fastjson.JSONObject;
+ 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+ 
+public class TimeTransfer {
+
+	//系统时间
+        long l = System.currentTimeMillis();
+        System.out.println(l);
+	//date对象获取
+        long date = new Date().getTime();
+        System.out.println(date);
+
+
+ 
+    public static String getCurrentTime() {
+        Date now = new Date();
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//可以方便地修改日期格式
+        String currentTime = dateFormat.format(now);
+//        System.out.println("当前时间为:" + currentTime);
+        return currentTime;
+    }
+ 
+    /**
+     * 时间戳转换成日期格式字符串
+     *
+     * @return
+     */
+    public static String clientTimeStamp(JSONObject json) {
+//        JSONObject json = JsonAnalysis.jsonText(jsonText);
+        if (!json.containsKey("clientTimeStamp")) {
+            return "";
+        }
+        long clientTimeStamp = json.getLong("clientTimeStamp");
+        if (clientTimeStamp == 0) {
+            return "";
+        }
+ 
+ 
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy年MM月dd日 HH:mm:ss");
+        // clientTimeStamp为秒，需要转换为毫秒，再转换为年月日时分秒
+        String currentTime = dateFormat.format(clientTimeStamp * 1000);
+        return currentTime;
+    }
+ 
+    public static void main(String[] args) {
+        String currentDayTime=getCurrentTime();
+        System.out.println("当前日期为："+currentDayTime);
+    }
+ 
+}
+字符串转换时间戳:
+import java.text.SimpleDateFormat;
+import java.util.Date;
+public class StringToDateExample1 {
+public static void main(String[] args)throws Exception {
+    String sDate1="31/12/1998";
+    Date date1=new SimpleDateFormat("dd/MM/yyyy").parse(sDate1);
+    System.out.println(sDate1+"\t"+date1);
+}
+}
+

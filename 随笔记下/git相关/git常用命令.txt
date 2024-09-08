@@ -1,0 +1,40 @@
+yum命令安装：sudo yum install -y git
+源码安装：安装前要手动安装下依赖包（可使用rpm -qa | grep wget命令查看是否有安装包）
+sudo yum install -y wget
+sudo yum install -y gcc-c++
+sudo yum install -y zlib-devel perl-ExtUtils-MakeMaker
+去官网下载最新版本的git源码包
+wget https://mirrors.edge.kernel.org/pub/software/scm/git/git-2.9.0.tar.gz
+tar -zxvf git-2.9.0.tar.gz
+cd git-2.9.0
+./configure --prefix=/usr/local
+make
+sudo make install
+./configure后面的–prefix=/usr/local，指定安装路径为usr/local
+ git --version
+
+初始化本地文件夹为仓库
+git init
+查看仓库文件状态
+git status   :红色表示未提交  :绿色表示已提交
+提交到暂存区
+git add .
+提交到本地仓库
+git commit -m "git initprogect"
+
+查看分支
+ git branch
+ git status
+On branch master:显示分支
+
+新建分支
+ git checkout -b tabbar
+上传到gitee一个新分支
+git push -u origin tabbar
+切换分支
+ git checkout master
+合并分支
+git merge tabber
+          新分支名称
+
+

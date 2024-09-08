@@ -1,0 +1,234 @@
+﻿参考网址: https://www.linuxidc.com/Linux/2017-03/142221.htm
+          https://blog.csdn.net/medivhq/article/details/51274597
+
+#本次实验环境为centos6.5，全部关闭防火墙和selinux
+192.168.12.70(node1)  部署ngnix做反向代理
+192.168.12.72(node2)  安装mysql，并授权test用户允许远程登陆
+192.168.12.73(node3)  安装mysql，并授权test用户允许远程登陆
+192.168.12.74(node4)  客户端 测试连接
+
+1、代理单点端口
+[root@node1 ~]# tar -xf nginx-1.9.4.tar.gz 
+[root@node1 ~]# cd nginx-1.9.4/
+[root@node1 nginx-1.9.4]# yum -y install pcre-devel
+[root@node1 nginx-1.9.4]# yum -y install openssl openssl-devel
+[root@node1 nginx-1.9.4]# groupadd nginx
+[root@node1 nginx-1.9.4]# useradd -g nginx nginx
+[root@node1 nginx-1.9.4]# ./configure --user=nginx --group=nginx --prefix=/usr/local/nginx 
+--with-http_stub_status_module --with-http_ssl_module
+--with-http_realip_module --with-http_flv_module
+--with-http_mp4_module --with-http_gzip_static_module
+--with-stream --with-stream_ssl_module 
+
+[root@node1 nginx-1.9.4]# make && make install
+
+[root@node1 nginx-1.9.4]# cd /usr/local/nginx/
+[root@node1 nginx]# vim conf/nginx.conf
+..........
+
+events {
+    worker_connections  1024;
+}
+stream {
+
+upstream mysql {
+zone myapp1 64k;
+server 192.168.12.72:3306 weight=1 max_fails=3 fail_timeout=30s;
+}
+
+server {
+        listen 2188;
+        proxy_connect_timeout 1s;
+        proxy_timeout 3s;
+        proxy_pass mysql;
+}
+}
+
+
+
+http {
+
+.............
+
+:wq
+
+[root@node1 nginx]# sbin/nginx -t
+[root@node1 nginx]# sbin/nginx         #启动nginx
+[root@node1 nginx]# netstat -anultp    #查看是否有2188端口
+
+#客户端可视化数据库第三方工具连接或者命令行 连接测试是否OK
+[root@node4 ~]# mysql -utest -h192.168.12.70 -p123456 -P2188
+mysql> select @@hostname;
+ERROR 2006 (HY000): MySQL server has gone away
+No connection. Trying to reconnect...
+Connection id:    29
+Current database: *** NONE ***
+
++------------+
+| @@hostname |
++------------+
+| node2      |     #192.168.12.72的主机名 node2 
++------------+
+########################################################
+
+2、实现nginx反向代理多个mysql负载均衡
+
+[root@node1 nginx]# vim conf/nginx.conf
+..........
+
+events {
+    worker_connections  1024;
+}
+stream {
+
+upstream mysql {
+zone myapp1 64k;
+server 192.168.12.72:3306 weight=1 max_fails=3 fail_timeout=30s;
+server 192.168.12.73:3306 weight=1 max_fails=3 fail_timeout=30s;
+}
+
+server {
+        listen 2188;
+        proxy_connect_timeout 1s;
+        proxy_timeout 3s;
+        proxy_pass mysql;
+}
+}
+
+
+
+http {
+
+.............
+
+:wq
+
+[root@node1 nginx]# pkill nginx     #杀掉进程 重启服务
+[root@node1 nginx]# sbin/nginx -t
+[root@node1 nginx]# sbin/nginx
+[root@node1 nginx]# netstat -anultp
+
+客户端测试连接,第一次连接会看当前的主机名为node2 ，退出再次连接就是node3，证明负载均衡OK
+[root@node4 ~]# mysql -utest -h192.168.12.70 -p123456 -P2188
+
+mysql> select @@hostname;
++------------+
+| @@hostname |
++------------+
+| node2      |         #192.168.12.72的主机名 node2
++------------+
+
+mysql> quit
+
+[root@node4 ~]# mysql -utest_proxy -h192.168.12.70 -p123456 -P2188
+
+mysql> select @@hostname;
++------------+
+| @@hostname |
++------------+
+| node3      |          #192.168.12.73的主机名 node3
++------------+
+
+######################################################
+
+3、如果需要nginx多个端口代理多个不同主机的mysql 如下修改
+
+[root@node1 nginx]# vim conf/nginx.conf
+..........
+
+events {
+    worker_connections  1024;
+}
+stream {
+
+server {
+        listen 2188;
+        proxy_connect_timeout 1s;
+        proxy_timeout 3s;
+        proxy_pass 192.168.12.72:3306;
+}
+server {
+        listen 2189;
+        proxy_connect_timeout 1s;
+        proxy_timeout 3s;
+        proxy_pass 192.168.12.73:3306;
+}
+}
+
+
+
+http {
+
+.............
+
+:wq
+
+[root@node1 nginx]# pkill nginx     #杀掉进程 重启服务
+[root@node1 nginx]# sbin/nginx -t
+[root@node1 nginx]# sbin/nginx
+[root@node1 nginx]# netstat -anultp
+
+
+客户端测试连接 不同的代理端口
+[root@node4 ~]# mysql -utest_proxy -h192.168.12.70 -p123456 -P2188
+mysql> select @@hostname;
++------------+
+| @@hostname |
++------------+ 
+| node2      |         #192.168.12.72的主机名 node2
++------------+
+
+[root@kuaiing ~]# mysql -utest_proxy -h192.168.12.70 -p123456 -P2189
+mysql> select @@hostname;
++------------+
+| @@hostname |
++------------+
+| node3      |         #192.168.12.73的主机名 node3
++------------+
+
+###########################################################
+
+4、代理其他端口 原理一样，只需要修改被代理的端口即可 如下
+
+[root@node1 nginx]# vim conf/nginx.conf
+..........
+
+events {
+    worker_connections  1024;
+}
+stream {
+
+server {
+        listen 2188;
+        proxy_connect_timeout 1s;
+        proxy_timeout 3s;
+        proxy_pass 192.168.12.72:22;
+}
+server {
+        listen 2189;
+        proxy_connect_timeout 1s;
+        proxy_timeout 3s;
+        proxy_pass 192.168.12.73:3306;
+}
+}
+
+
+
+http {
+
+.............
+
+:wq
+
+[root@node1 nginx]# pkill nginx     #杀掉进程 重启服务
+[root@node1 nginx]# sbin/nginx -t
+[root@node1 nginx]# sbin/nginx
+[root@node1 nginx]# netstat -anultp
+
+客户端测试连接  代理tcp 22端口如下  OK
+[root@node4 ~]# ssh 192.168.12.70 -p2188
+The authenticity of host '[192.168.12.70]:2188 ([192.168.12.70]:2188)' can't be established.
+RSA key fingerprint is 9c:e9:92:ab:ee:1a:34:63:13:97:68:76:5a:d0:d3:b7.
+Are you sure you want to continue connecting (yes/no)? yes
+root@192.168.12.70's password
+[root@node2 ~]#

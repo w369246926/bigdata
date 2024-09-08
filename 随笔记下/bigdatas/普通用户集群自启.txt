@@ -1,0 +1,390 @@
+
+
+
+#HADOOP_HOME
+export HADOOP_HOME=/export/server/hadoop-2.7.5
+export PATH=:$HADOOP_HOME/bin:$HADOOP_HOME/sbin:$PATH
+
+
+#HBASE_HOME
+export HBASE_HOME=/export/server/hbase-2.1.0
+export PATH=$PATH:${HBASE_HOME}/bin:${HBASE_HOME}/sbin
+
+#NODE.JS
+export NODE_HOME=/export/server/es/node-v8.1.0-linux-x64
+export PATH=:$PATH:$NODE_HOME/bin
+
+#KAFKA
+export KAFKA_HOME=/export/server/kafka
+export PATH=$PATH:$KAFKA_HOME/bin
+
+#FLINK
+export HADOOP_CONF_DIR=/export/server/hadoop-2.7.5/etc/hadoop
+
+
+用户权限：
+root用户
+
+
+sudo useradd -m -g dcyw 组 新建用户名
+sudo passwd 新建用户名
+
+
+vim /etc/sudoers
+# 默认存在: root用户 具备所有的权限
+root    ALL=(ALL)       ALL
+
+# 授予 lisi 用户 所有的权限
+dcyw    ALL=(ALL)       ALL
+
+su 新建用户名
+权限问题：
+chmod -R 755 文件|目录
+chown -R 用户名：用户名 文件名 --用来更改文件及以下全部文件所属用户
+sudo chown -R dcyw:dcyw jdk1.8.0_241/
+chattr -i 文件名
+每台虚拟机修改对应主机名重启后永久生效
+sudo vi /etc/sysconfig/network
+HOSTNAME=dcywz1
+
+hostnamectl set-hostname 命名
+
+每台虚拟机设置ip和域名映射
+sudo vim /etc/hosts
+192.168.88.128 dcywz1 dcywz1.hadoop.com
+192.168.88.129 dcywz1 dcywz1.hadoop.com
+192.168.88.130 dcywz1 dcywz1.hadoop.com
+查看防火墙状态
+systemctl status firewalld
+关闭防火墙
+systemctl stop firewalld
+开机不启动防火墙
+systemctl disable firewalld
+
+关闭selinux修改selinux的配置文件
+sudo vi /etc/selinux/config
+SELINUX=disabled
+三台机器生成公钥与私钥
+ssh-keygen -t rsa
+三台机器执行密钥对可以用复制粘贴的方法
+ssh-copy-id dcywz1
+ssh-copy-id dcywz2
+ssh-copy-id dcywz3
+三台机器时钟同步
+## 安装
+sudo yum install -y ntp
+
+## 启动定时任务
+crontab -e
+*/1 * * * * /usr/sbin/ntpdate ntp4.aliyun.com;
+安装软件--JDK
+查看自带JDK
+rpm -qa | grep java
+卸载自带JDK
+rpm -e --nodeps java-1.8.0-openjdk-1.8.0.102-4.b14.el7.x86_64
+rpm -e --nodeps java-1.8.0-openjdk-headless-1.8.0.102-4.b14.el7.x86_64
+rpm -e --nodeps java-1.7.0-openjdk-headless-1.7.0.111-2.6.7.8.el7.x86_64
+rpm -e --nodeps java-1.7.0-openjdk-1.7.0.111-2.6.7.8.el7.x86_64
+解压自己的JDK
+unzip jdk.zip
+vim .bash_profile
+
+export JAVA_HOME=/home/dcyw/server/jdk1.8
+export PATH=:$JAVA_HOME/bin:$PATH
+source .bash_profile
+chmod -R 755 jdk目录
+java -version
+scp /home/dcyw/server/jdk1.8 dcywz2:/home/dcyw/server/
+scp /home/dcyw/.bach_profile dcywz2:/home/dcyw/
+source .bash_profile
+scp /home/dcyw/server/jdk1.8 dcywz3:/home/dcyw/server/
+scp /home/dcyw/.bach_profile dcywz3:/home/dcyw/
+source .bash_profile
+每台机器用jps查询java进程
+解压自己的ZK
+vim  zoo.cfg
+创建一个数据存放路径
+mkdir /export/servers/zookeeper-3.4.9/zkdatas
+vim  zoo.cfg
+dataDir=/export/servers/zookeeper-3.4.9/zkdatas
+# 保留多少个快照
+autopurge.snapRetainCount=3
+# 日志多少小时清理一次
+autopurge.purgeInterval=1
+# 集群中服务器地址
+server.1=dcywz1:2888:3888
+server.2=dcywz2:2888:3888
+server.3=dcywz3:2888:3888
+进入自创的数据目录
+vim myid
+写入1
+scp到每台机器重复之前的操作并更改myid中的数字，依次更改
+启动所有机器zookeeper
+zookeeper目录下bin目录中./zkServer.sh start  (status)
+解压自己的hadoop
+cd 到Hadoop目录下/etc/hadoop/
+修改IP及数据存放目录地址
+修改core-site.xml、hdfs-site.xml、hadoop-env.sh、yarn-site.xml、
+mapred-env.sh添加Java地址
+vim slaves
+node01
+node02
+node03
+添加环境变量
+export HADOOP_HOME=/export/servers/hadoop-2.7.5
+export PATH=:$HADOOP_HOME/bin:$HADOOP_HOME/sbin:$PATH
+source .bash_profile
+分发
+scp -r hadoop目录 到dcyw：￥PWD
+启动hadoop
+启动Hadoop命令：
+cd /export/server/hadoop-2.7.5/  进入Hadoop目录
+bin/hdfs namenode -format  首次运行的格式化
+sbin/start-dfs.sh  启动hdfs  jps :namenode+datanode
+sbin/start-yarn.sh  启动yarn  jps: SecondaryNameNode+ResourceManager+nodemanager
+sbin/mr-jobhistory-daemon.sh start historyserver  历史job任务 jps: JobHistoryServer
+三个端口查看界面
+http://192.168.88.163:50070/explorer.html#/ 查看hdfs
+http://192.168.88.163:8088/cluster 查看yarn集群
+http://192.168.88.163:19888/jobhistory 查看历史完成的Job任务
+
+解压自己的KAFKA
+更改Kafka目录下config/server.properties
+# 指定broker的id每台机器需不同
+broker.id=0
+# 指定Kafka数据的位置
+log.dirs=/export/server/kafka_2.12-2.4.1/data
+# 配置zk的三个节点
+zookeeper.connect=node1.itcast.cn:2181,node2.itcast.cn:2181,node3.itcast.cn:2181
+注意：bin/kafka-server-start.sh中关于内存的设置
+每台机器启动
+kafka目录下  bin/kafka-server-start.sh config/server.properties
+
+配置卡夫卡一键启动脚本
+
+创建一个目录，vim slave配置文件，用于保存要启动哪几个节点上的kafka
+node1.itcast.cn
+node2.itcast.cn
+node3.itcast.cn
+编写start-kafka.sh脚本
+vim start-kafka.sh
+cat /export/onekey/slave | while read line
+do
+{
+ echo $line
+ ssh $line "source /etc/profile;export JMX_PORT=9988;nohup ${KAFKA_HOME}/bin/kafka-server-start.sh -daemon ${KAFKA_HOME}/config/server.properties >/dev/nul* 2>&1 & "
+}&
+wait
+done
+给定权限
+chmod u+x start-kafka.sh
+
+编写一键启动脚本
+vim bigdata
+复制以下内容：到文件中
+#!/bin/bash
+function startZK(){
+ZKIP=(dcywz1 dcywz2 dcywz3)
+for ip in ${ZKIP[*]};
+do
+   #登录
+   echo -e "\e[1;32m 当前${ip}正在启动zookeep \e[0m"
+   ssh ${ip} "source /home/dcyw/.bash_profile;/home/dcyw/server/zookeeper-3.4.14/bin/zkServer.sh start"
+   echo -e "\e[1;35m ${ip}启动结束----------\n\n \e[0m"
+
+   `exit`
+done;
+}
+
+function startkafka(){
+/home/dcyw/export/onekey/start-kafka.sh
+}
+
+function startHadoop(){
+cd /home/dcyw/server/hadoop2.7.3/
+sbin/start-all.sh
+}
+
+
+
+#启动zk集群
+startZK;
+sleep 5
+#启动Kafka集群
+startkafka
+sleep 5
+#启动hadoop集群
+startHadoop;
+
+保存退出后执行测试
+./bigdata
+
+添加到开机自启文件
+sudo vim /etc/rc.d/rc.local
+写入
+source /home/dcyw/.bash_profile
+touch /var/lock/subsys/local
+su dcyw -c"/home/dcyw/bigdata"
+保存 
+给予此文件权限
+chmod +x /etc/rc.d/rc.local
+完毕！重启服务器！（先重启分支节点，最后重启主节点，保证执行自启脚本时分支节点都在线）
+
+
+flink:
+部署:
+flink/conf目录
+更改:
+flink-conf.yaml
+jobmanager.rpc.address: node1(高可用配置2个不同机器名称)
+taskmanager.numberOfTaskSlots: 1
+web.submit.enable: true
+#FLINK-ha
+state.backend: filesystem
+state.backend.fs.checkpointdir: hdfs://node1:8020/flink-checkpoints
+high-availability: zookeeper
+high-availability.storageDir: hdfs://node1:8020/flink/ha/
+high-availability.zookeeper.quorum: node1:2181,node2:2181,node3:2181
+
+启动flink
+bin/start-cluster.sh
+jps出现:
+ 	- TaskManagerRunner
+ 	- StandaloneSessionClusterEntrypoint
+ 	http://node1:8081/#/overview
+	执行bin下的 夫林卡 run , 写上测试算法路径, 添加数据源地址  ,输出结果地址
+	bin/flink run examples/batch/WordCount.jar --input /root/words.txt --output /root/out
+
+配置click house
+取消打开文件数限制:
+sudo vim /etc/security/limits.conf
+在文件末尾添加：
+* soft nofile 65536 
+* hard nofile 65536 
+* soft nproc 131072 
+* hard nproc 131072
+sudo vim /etc/security/limits.d/20-nproc.conf
+在文件末尾添加：
+* soft nofile 65536 
+* hard nofile 65536 
+* soft nproc 131072 
+* hard nproc 131072
+用户重新登录后用ulimit -a查看情况
+安装依赖
+sudo yum install -y libtool
+sudo yum install -y *unixODBC*
+默认用户名：default密码:空
+rpm安装方式，
+conf一般安装在/etc目录下
+Lib 相关在var/lib/下
+Bin命令一般在/usr/bin/
+Log :var/log
+yum安装方式:
+sudo yum install yum-utils
+sudo rpm --import https://repo.clickhouse.com/CLICKHOUSE-KEY.GPG
+sudo yum-config-manager --add-repo https://repo.clickhouse.com/rpm/clickhouse.repo
+sudo yum install clickhouse-server clickhouse-client
+sudo yum remove clickhouse-server clickhouse-client
+启动命令
+sudo /etc/init.d/clickhouse-server start
+clickhouse-client
+客户端:端口默认9000
+sudo vim /etc/clickhouse-server/config.xml
+配置集群：
+<ckcluster>
+        <shard>
+             <internal_replication>true</internal_replication>
+            <replica>
+                <host>iienode1</host>
+                <port>19000</port>
+                <user>default</user>
+                <password>123456</password>
+            </replica>
+        </shard>
+        <shard>
+            <replica>
+                <internal_replication>true</internal_replication>
+                <host>iienode2</host>
+                <port>19000</port>
+                <user>default</user>
+                <password>123456</password>
+            </replica>
+        </shard>
+        <shard>
+            <internal_replication>true</internal_replication>
+            <replica>
+                <host>iienode3</host>
+                <port>19000</port>
+                <user>default</user>
+                <password>123456</password>
+            </replica>
+</shard>
+    </ckcluster>
+搜索/zookeeper
+<zookeeper>
+        <node>
+            <host>dcye1</host>
+            <port>2181</port>
+        </node>
+        <node>
+            <host>dcyw22</host>
+            <port>2181</port>
+        </node>
+        <node>
+            <host>dcyw33</host>
+            <port>2181</port>
+        </node>
+    </zookeeper>
+	打开任意用户连接
+sudo vim /etc/clickhouse-server/config.xml
+<listen_host>::</listen_host>
+
+datax,解压即用
+目录下执行检测:
+python bin/datax.py job/job.json
+读写脚本查询方法:
+bin/datax.py -r 读谁 -w 写哪 
+如果没有请进入plugin目录看看是否有相应的目录
+tar -zcvf 136.7.tar.gz clickhouse/
+安装datax-web
+https://pan.baidu.com/s/13yoqhGpD00I82K4lOYtQhg
+cpsk
+基础软件安装
+MySQL (5.5+) 必选，对应客户端可以选装, Linux服务上若安装mysql的客户端可以通过部署脚本快速初始化数据库
+JDK (1.8.0_xxx) 必选
+Maven (3.6.1+) 必选
+DataX 必选
+Python (2.x)
+解压datax-web后执行一键安装脚本
+./bin/install.sh --force
+Scan out mysql command, so begin to initalize the database
+Do you want to initalize database with sql: [{INSTALL_PATH}/bin/db/datax-web.sql]? (Y/N)y
+Please input the db host(default: 127.0.0.1): 
+Please input the db port(default: 3306): 
+Please input the db username(default: root): 
+Please input the db password(default: ): mysql密码
+Please input the db name(default: exchangis)
+项目目录下/modules/datax-execute/bin/env.properties 指定PYTHON_PATH的路径### 执行datax的python脚本地址
+PYTHON_PATH=
+一键启动
+./bin/start-all.sh
+如果项目启动失败，请检查启动日志：modules/datax-admin/bin/console.out或者modules/datax-executor/bin/console.out
+http://192.168.88.142:9527/index.html
+输入用户名 admin 密码 123456 就可以直接访问系统
+https://github.com/WeiYe-Jing/datax-web/blob/master/doc/datax-web/datax-web-deploy.md
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
